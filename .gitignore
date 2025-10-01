@@ -1,1 +1,17 @@
+.CondaPkg
+*.jl.*.cov
+*.jl.cov
+*.jl.mem
 /Manifest.toml
+/docs/build/
+.vscode
+.envrc
+/manuscript/figures/glm/*
+/figures_old
+/ext
+/processed_data
+/results
+/notebooks/attic
+*attic*
+*.jld*
+*.csv*
