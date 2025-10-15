@@ -7,12 +7,13 @@ ax11 = Axis(
     ylabel = "MDS2 ("*string(round(100*uni_MDS_variances[2]; digits = 2))*"%)",
     title = "Functional Profiles (Genes/UniRef90s)"
 )
+hidedecorations!(ax11; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
 sc11 = scatter!(
     ax11,
     uni_MDS_columns[:,1],
     uni_MDS_columns[:,2];
     markersize = 10,
-    color = uniref_color_mdata.MaternalEntropy,
+    color = unimdata.MaternalEntropy,
     colormap = :plasma
 )
 
@@ -22,12 +23,13 @@ ax12 = Axis(
     ylabel = "MDS3 ("*string(round(100*uni_MDS_variances[3]; digits = 2))*"%)",
     title = "Functional Profiles (Genes/UniRef90s)"
 )
+hidedecorations!(ax12; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
 sc12 = scatter!(
     ax12,
     uni_MDS_columns[:,2],
     uni_MDS_columns[:,3];
     markersize = 10,
-    color = uniref_color_mdata.MaternalEntropy,
+    color = unimdata.MaternalEntropy,
     colormap = :plasma
 )
 
@@ -37,12 +39,13 @@ ax13 = Axis(
     ylabel = "MDS3 ("*string(round(100*uni_MDS_variances[3]; digits = 2))*"%)",
     title = "Functional Profiles (Genes/UniRef90s)"
 )
+hidedecorations!(ax13; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
 sc13 = scatter!(
     ax13,
     uni_MDS_columns[:,1],
     uni_MDS_columns[:,3];
     markersize = 10,
-    color = uniref_color_mdata.MaternalEntropy,
+    color = unimdata.MaternalEntropy,
     colormap = :plasma
 )
 
@@ -52,6 +55,7 @@ ax21 = Axis(
     ylabel = "MDS2 ("*string(round(100*spe_MDS_variances[2]; digits = 2))*"%)",
     title = "Taxonomic Profiles (species)",
 )
+hidedecorations!(ax21; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
 sc21 = scatter!(
     ax21,
     spe_MDS_columns[:,1],
@@ -67,6 +71,7 @@ ax22 = Axis(
     ylabel = "MDS3 ("*string(round(100*spe_MDS_variances[3]; digits = 2))*"%)",
     title = "Taxonomic Profiles (species)"
 )
+hidedecorations!(ax22; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
 sc22 = scatter!(
     ax22,
     spe_MDS_columns[:,2],
@@ -82,6 +87,7 @@ ax23 = Axis(
     ylabel = "MDS3 ("*string(round(100*spe_MDS_variances[3]; digits = 2))*"%)",
     title = "Taxonomic Profiles (species)"
 )
+hidedecorations!(ax23; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
 sc23 = scatter!(
     ax23,
     spe_MDS_columns[:,1],
@@ -97,12 +103,13 @@ ax31 = Axis(
     ylabel = "MDS2 ("*string(round(100*uni_MDS_variances[2]; digits = 2))*"%)",
     title = "Functional Profiles (Genes/UniRef90s)"
 )
+hidedecorations!(ax31; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
 sc31 = scatter!(
     ax31,
     uni_MDS_columns[:,1],
     uni_MDS_columns[:,2];
     markersize = 10,
-    color = uniref_color_mdata.InfantVisAtt,
+    color = unimdata.InfantVisAtt,
     colormap = :viridis
 )
 
@@ -112,12 +119,13 @@ ax32 = Axis(
     ylabel = "MDS3 ("*string(round(100*uni_MDS_variances[3]; digits = 2))*"%)",
     title = "Functional Profiles (Genes/UniRef90s)"
 )
+hidedecorations!(ax32; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
 sc32 = scatter!(
     ax32,
     uni_MDS_columns[:,2],
     uni_MDS_columns[:,3];
     markersize = 10,
-    color = uniref_color_mdata.InfantVisAtt,
+    color = unimdata.InfantVisAtt,
     colormap = :viridis
 )
 
@@ -127,12 +135,13 @@ ax33 = Axis(
     ylabel = "MDS3 ("*string(round(100*uni_MDS_variances[3]; digits = 2))*"%)",
     title = "Functional Profiles (Genes/UniRef90s)"
 )
+hidedecorations!(ax33; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
 sc33 = scatter!(
     ax33,
     uni_MDS_columns[:,1],
     uni_MDS_columns[:,3];
     markersize = 10,
-    color = uniref_color_mdata.InfantVisAtt,
+    color = unimdata.InfantVisAtt,
     colormap = :viridis
 )
 
@@ -142,6 +151,7 @@ ax41 = Axis(
     ylabel = "MDS2 ("*string(round(100*spe_MDS_variances[2]; digits = 2))*"%)",
     title = "Taxonomic Profiles (species)",
 )
+hidedecorations!(ax41; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
 sc41 = scatter!(
     ax41,
     spe_MDS_columns[:,1],
@@ -157,6 +167,7 @@ ax42 = Axis(
     ylabel = "MDS3 ("*string(round(100*spe_MDS_variances[3]; digits = 2))*"%)",
     title = "Taxonomic Profiles (species)"
 )
+hidedecorations!(ax42; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
 sc42 = scatter!(
     ax42,
     spe_MDS_columns[:,2],
@@ -172,6 +183,7 @@ ax43 = Axis(
     ylabel = "MDS3 ("*string(round(100*spe_MDS_variances[3]; digits = 2))*"%)",
     title = "Taxonomic Profiles (species)"
 )
+hidedecorations!(ax43; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
 sc43 = scatter!(
     ax43,
     spe_MDS_columns[:,1],

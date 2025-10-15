@@ -33,120 +33,13 @@ Random.seed!(0)
 #####
 include(joinpath(Base.pwd(), "notebooks", "load_data.jl"))
 
-khula_rf_data = deepcopy(khula_pci_mbiome_data)
-khula_rf_data = filter_prevalence(khula_rf_data, 0.05)
-khula_rf_data.InfantVisAtt = Leap.rangenormalize(khula_rf_data.InfantVisAtt)
-select!(khula_rf_data, mdata_cols, :)
-select!(khula_rf_data, :subject_id, :sample, :datasource, :pci_assess_age, :InfantVisAtt, :)
-
-# regression_VOB_NoEnt_FullCV = Leap.probe_regression_randomforest( ## Quick version that performs regression with the final hyperparameter set. 
-#     "regression_VOB_NoEnt_FullCV",
-#     khula_rf_data,
-#     identity,
-#     collect(findfirst(names(khula_rf_data) .== "mbiome_sample_age"):ncol(khula_rf_data)),
-#     :InfantVisAtt;
-#     split_strat = "subject",
-#     custom_input_group = nothing,
-#     unique_col = :sample,
-#     n_folds = 3,
-#     n_replicas = 5,
-#     n_rngs = 3,
-#     tuning_space = (; #PRODUCTION
-#         maxnodes_range = [ -1, 2, 4, 6, 8, 10 ],
-#         nodesize_range = [ 3, 5, 7, 9, 11 ],
-#         min_samples_split = [ 2, 3, 4 ],
-#         sampsize_range = [ 0.7, 0.8, 0.9 ],
-#         mtry_range = [ -1, 0, 10, 15, 20, 25, 30 ],
-#         ntrees_range = [ 64, 128, 256 ]
-#     )
-# )
-# sort(report_regression_merits(regression_VOB_NoEnt_FullCV), :Val_RMSE_mean)
-# JLD2.@save joinpath(Base.pwd(), "manuscript", "models", "regression_VOB_NoEnt_FullCV_Results.jld") regression_VOB_NoEnt_FullCV
-
-# regression_VOB_WtEnt_FullCV = Leap.probe_regression_randomforest( ## Quick version that performs regression with the final hyperparameter set. 
-#     "regression_VOB_WtEnt_FullCV",
-#     khula_rf_data,
-#     identity,
-#     collect(findfirst(names(khula_rf_data) .== "MaternalEntropy"):ncol(khula_rf_data)),
-#     :InfantVisAtt;
-#     split_strat = "subject",
-#     custom_input_group = nothing,
-#     unique_col = :sample,
-#     n_folds = 3,
-#     n_replicas = 5,
-#     n_rngs = 3,
-#     tuning_space = (; #PRODUCTION
-#         maxnodes_range = [ -1, 2, 4, 6, 8, 10 ],
-#         nodesize_range = [ 3, 5, 7, 9, 11 ],
-#         min_samples_split = [ 2, 3, 4 ],
-#         sampsize_range = [ 0.7, 0.8, 0.9 ],
-#         mtry_range = [ -1, 0, 10, 15, 20, 25, 30 ],
-#         ntrees_range = [ 64, 128, 256 ]
-#     )
-# )
-# sort(report_regression_merits(regression_VOB_WtEnt_FullCV), :Val_RMSE_mean)
-# JLD2.@save joinpath(Base.pwd(), "manuscript", "models", "regression_VOB_WtEnt_FullCV.jld") regression_VOB_WtEnt_FullCV
-
-# hpimportances(regression_VOB_WtEnt_FullCV)
-# khula_selection_rf = select(khula_rf_data, ["subject_id", "sample", "datasource", "InfantVisAtt", "MaternalEntropy", "mbiome_sample_age", "Bifidobacterium_breve", "Bifidobacterium_longum", "Streptococcus_salivarius", "alpha_shannon", "Enterococcus_faecalis", "Escherichia_coli", "Streptococcus_mitis", "Enterococcus_gallinarum", "Veillonella_atypica", "Clostridium_neonatale", "Bacteroides_vulgatus", "Bifidobacterium_bifidum", "Ruminococcus_gnavus", "Lactobacillus_reuteri", "Streptococcus_parasanguinis", "Bifidobacterium_kashiwanohense", "Enterococcus_avium", "Veillonella_dispar", "Enterococcus_faecium", "Klebsiella_variicola", "Collinsella_aerofaciens", "Klebsiella_pneumoniae", "Clostridioides_difficile", "Parabacteroides_distasonis", "Veillonella_parvula", "Actinomyces_sp_oral_taxon_181", "Flavonifractor_plautii", "Megasphaera_micronuciformis"])
-
-# regression_VOB_SelectionNoEnt_FullCV = Leap.probe_regression_randomforest( ## Quick version that performs regression with the final hyperparameter set. 
-#     "regression_VOB_SelectionNoEnt_FullCV",
-#     khula_selection_rf,
-#     identity,
-#     collect(findfirst(names(khula_selection_rf) .== "mbiome_sample_age"):ncol(khula_selection_rf)),
-#     :InfantVisAtt;
-#     split_strat = "subject",
-#     custom_input_group = nothing,
-#     unique_col = :sample,
-#     n_folds = 3,
-#     n_replicas = 5,
-#     n_rngs = 3,
-#     tuning_space = (; #PRODUCTION
-#         maxnodes_range = [ -1, 2, 4, 6, 8, 10 ],
-#         nodesize_range = [ 3, 5, 7, 9, 11 ],
-#         min_samples_split = [ 2, 3, 4 ],
-#         sampsize_range = [ 0.7, 0.8, 0.9 ],
-#         mtry_range = [ -1, 0, 10, 15, 20, 25 ],
-#         ntrees_range = [ 64, 128, 256 ]
-#     )
-# )
-# sort(report_regression_merits(regression_VOB_SelectionNoEnt_FullCV), :Val_RMSE_mean)
-# JLD2.@save joinpath(Base.pwd(), "manuscript", "models", "regression_VOB_SelectionNoEnt_FullCV.jld") regression_VOB_SelectionNoEnt_FullCV
-
-# regression_VOB_SelectionWtEnt_FullCV = Leap.probe_regression_randomforest( ## Quick version that performs regression with the final hyperparameter set. 
-#     "regression_VOB_SelectionWtEnt_FullCV",
-#     khula_selection_rf,
-#     identity,
-#     collect(findfirst(names(khula_selection_rf) .== "MaternalEntropy"):ncol(khula_selection_rf)),
-#     :InfantVisAtt;
-#     split_strat = "subject",
-#     custom_input_group = nothing,
-#     unique_col = :sample,
-#     n_folds = 3,
-#     n_replicas = 5,
-#     n_rngs = 3,
-#     tuning_space = (; #PRODUCTION
-#         maxnodes_range = [ -1, 2, 4, 6, 8, 10 ],
-#         nodesize_range = [ 3, 5, 7, 9, 11 ],
-#         min_samples_split = [ 2, 3, 4 ],
-#         sampsize_range = [ 0.7, 0.8, 0.9 ],
-#         mtry_range = [ -1, 0, 10, 15, 20, 25, 30 ],
-#         ntrees_range = [ 64, 128, 256 ]
-#     )
-# )
-# sort(report_regression_merits(regression_VOB_SelectionWtEnt_FullCV), :Val_RMSE_mean)
-# JLD2.@save joinpath(Base.pwd(), "manuscript", "models", "regression_VOB_SelectionWtEnt_FullCV.jld") regression_VOB_SelectionWtEnt_FullCV
-
-JLD2.@load joinpath(Base.pwd(), "manuscript", "models", "regression_VOB_NoEnt_FullCV_Results.jld") regression_VOB_NoEnt_FullCV
-JLD2.@load joinpath(Base.pwd(), "manuscript", "models", "regression_VOB_WtEnt_FullCV_Results.jld") regression_VOB_WtEnt_FullCV
-
 #####
 # Sourcing LMs and FSEA analysis from separate file
 #####
-# include(joinpath(Base.pwd(), "notebooks", "maaslin3_analysis.jl"))
-# include(joinpath(Base.pwd(), "notebooks", "gene_glm_analysys.jl"))
-# include(joinpath(Base.pwd(), "notebooks", "fsea_analysis.jl"))
+include(joinpath(Base.pwd(), "notebooks", "rf_analysis.jl"))
+include(joinpath(Base.pwd(), "notebooks", "maaslin3_analysis.jl"))
+include(joinpath(Base.pwd(), "notebooks", "gene_glm_analysis.jl"))
+include(joinpath(Base.pwd(), "notebooks", "fsea_analysis.jl"))
 
 #####
 # Figure plotting block

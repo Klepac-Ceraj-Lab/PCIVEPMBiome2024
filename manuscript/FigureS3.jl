@@ -127,7 +127,7 @@ clu_means = Float64[]
 clu_stdns = Float64[]
 
 for i in 1:elbow_point
-    cluster_data = uniref_color_mdata.InfantVisAtt[final_clu.assignments .== i, :]
+    cluster_data = unimdata.InfantVisAtt[final_clu.assignments .== i, :]
     mean_cluster = mean(cluster_data, dims=1)
     std_dev_cluster = std(cluster_data, dims=1)
     push!(clu_means, mean_cluster[1,1])
@@ -154,15 +154,15 @@ hidedecorations!(
 
 bpC = barplot!(
     axC,
-    1:4,
+    1:elbow_point,
     clu_means,
-    color = 1:4,
+    color = 1:elbow_point,
     colormap = :berlin
 )
 
 rangebars!(
     axC,
-    1:4,
+    1:elbow_point,
     clu_means .- clu_stdns/2,
     clu_means .+ clu_stdns/2,
     color = :black,
