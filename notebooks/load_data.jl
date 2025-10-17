@@ -67,3 +67,15 @@ println("Total number of participants: $(nrow(khula_pci_mbiome_data))")
 println("Total number of males: $(sum(khula_pci_mbiome_data.child_sex .== 1)) ($(round(sum(khula_pci_mbiome_data.child_sex .== 1)/nrow(khula_pci_mbiome_data)*100; digits = 1))%)")##0 is female, 1 is male
 println("Total number of females: $(sum(khula_pci_mbiome_data.child_sex .== 0)) ($(round(sum(khula_pci_mbiome_data.child_sex .== 0)/nrow(khula_pci_mbiome_data)*100; digits = 1))%)")##0 is female, 1 is male
 println("Range of ages: $(ceil(minimum(khula_pci_mbiome_data.mbiome_sample_age)*30.5))-$(ceil(maximum(khula_pci_mbiome_data.mbiome_sample_age)*30.5))")##0 is female, 1 is male
+
+let
+    taxprofile_richness = [ sum(el .> 0.0) for el in eachrow(Matrix(khula_tax_data_species[:, 3:end])) ]
+    println("Species richness: $(floor(Int64, mean(taxprofile_richness))) (SD = $(floor(Int64, Statistics.std(taxprofile_richness))))")
+
+    geneprofile_richness = [ sum(el .> 0.0) for el in eachcol(abundances(stratified_unirefs)) ]
+    println("Gene richness: $(floor(Int64, mean(geneprofile_richness))) (SD = $(floor(Int64, Statistics.std(geneprofile_richness))))")
+
+    geneprofile_richness_filtered = [ sum(el .> 0.0) for el in eachcol(abundances(stratified_unirefs_filtered)) ]
+    println("Gene richness: $(floor(Int64, mean(geneprofile_richness_filtered))) (SD = $(floor(Int64, Statistics.std(geneprofile_richness_filtered))))")
+
+end
