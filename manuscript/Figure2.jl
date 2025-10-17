@@ -40,16 +40,17 @@ include(joinpath(Base.pwd(), "notebooks", "rf_analysis.jl"))
 include(joinpath(Base.pwd(), "notebooks", "maaslin3_analysis.jl"))
 include(joinpath(Base.pwd(), "notebooks", "gene_glm_analysis.jl"))
 include(joinpath(Base.pwd(), "notebooks", "fsea_analysis.jl"))
+include(joinpath(Base.pwd(), "notebooks", "fetch_neuroactive_abundance.jl"))
 
 #####
 # Figure plotting block
 #####
 
-fig = Figure(; size = (1200, 1200))
+fig = Figure(; size = (1200, 1300))
 
 ABC_Subfig = GridLayout(fig[1,:]; alignmode = Outside())
 DE_Subfig = GridLayout(fig[2,:]; alignmode = Outside())
-F_Subfig = GridLayout(fig[3,:]; alignmode = Outside())
+FG_Subfig = GridLayout(fig[3,:]; alignmode = Outside())
 
 AB_Subfig = GridLayout(ABC_Subfig[:,1]; alignmode = Inside())
 C_Subfig = GridLayout(ABC_Subfig[:,2]; alignmode = Inside())
@@ -60,8 +61,12 @@ AB_Subfig_legends = GridLayout(AB_Subfig[2,:]; alignmode = Inside())
 C_Subfig_plots = GridLayout(C_Subfig[1,:]; alignmode = Inside())
 C_Subfig_legends = GridLayout(C_Subfig[2,:]; alignmode = Inside())
 
-D_Subfig = GridLayout(DE_Subfig[1,:]; alignmode = Outside())
-E_Subfig = GridLayout(DE_Subfig[2,:]; alignmode = Outside())
+D_Subfig = GridLayout(DE_Subfig[1,:]; alignmode = Inside())
+E_Subfig = GridLayout(DE_Subfig[2,:]; alignmode = Inside())
+
+F_Subfig = GridLayout(FG_Subfig[1,1]; alignmode = Inside())
+G_Subfig = GridLayout(FG_Subfig[1,2:3]; alignmode = Inside())
+
 
 ## A+B - Abundance - Outcome scatterplots
 
@@ -200,6 +205,7 @@ Legend(
     ];
     tellheight = false,
     tellwidth = false,
+    margin = (0.0f0, 32.0f0, 0.0f0, 0.0f0),
     nbanks = 1
 )
 
@@ -217,6 +223,7 @@ Legend(
     ];
     tellheight = false,
     tellwidth = false,
+    margin = (0.0f0, 75.0f0, 0.0f0, 0.0f0),
     nbanks = 1
 )
 
@@ -235,7 +242,7 @@ datadir = "manuscript/FSEA/"
 res = NamedTuple(map(("entropy", "visual")) do mod
     lms = CSV.read(joinpath(datadir, "lms_Model2_$mod.csv"), DataFrame)
     Symbol(mod) => (;
-        lms = lms,
+        lms = subset(lms, :z => x -> .!isnan.(x)),  # remove missing z (these are the intercepts)
         na = Leap.getneuroactive(map(f-> replace(f, "UniRef90_"=>""), lms.feature)),
         fsea = CSV.read(joinpath(datadir, "fsea_consolidated_Model2_$mod.csv"), DataFrame)
     )
@@ -253,7 +260,7 @@ prettytitles = Dict(
 
 for (i, k) in enumerate(keys(res))
 
-    mdz = median(res[k].lms.z)
+    @show mdz = median(res[k].lms.z)
     lms = res[k].lms
     na = res[k].na
     fsea = res[k].fsea
@@ -271,9 +278,9 @@ for (i, k) in enumerate(keys(res))
     i == 1 && hideydecorations!(ax, ticklabels = false, ticks = false, minorticks = false)
     i != 1 && hideydecorations!(ax, ticks = false, minorticks = false)
 
-    if i == 1
+    # if i == 1
         ax.yticks = (1:length(sigs), sigs)
-    end
+    # end
 
     vlines!(ax, [mdz]; ymin = 0.0, ymax = 8.0, linestyle = :dash, color = :gray)
 
@@ -315,7 +322,7 @@ Legend(## Vertical version, to the side
 res = NamedTuple(map(("entropy", "visual", "product")) do mod
     lms = CSV.read(joinpath(datadir, "lms_Model3_$mod.csv"), DataFrame)
     Symbol(mod) => (;
-        lms = lms,
+        lms = subset(lms, :z => x -> .!isnan.(x)),  # remove missing z (these are the intercepts)
         na = Leap.getneuroactive(map(f-> replace(f, "UniRef90_"=>""), lms.feature)),
         fsea = CSV.read(joinpath(datadir, "fsea_consolidated_Model3_$mod.csv"), DataFrame)
     )
@@ -352,9 +359,9 @@ for (i, k) in enumerate(keys(res))
     i == 1 && hideydecorations!(ax, ticklabels = false, ticks = false, minorticks = false)
     i != 1 && hideydecorations!(ax, ticks = false, minorticks = false)
 
-    if i == 1
+    # if i == 1
         ax.yticks = (1:length(sigs), sigs)
-    end
+    # end
 
     vlines!(ax, [mdz]; ymin = 0.0, ymax = 8.0, linestyle = :dash, color = :gray)
 
@@ -376,106 +383,176 @@ Label(DE_Subfig[1, 0, Left()], "Unique effects models", rotation = pi/2)
 Label(DE_Subfig[2, 0, Left()], "Interaction models", rotation = pi/2)
 
 ## Organism barplot
+ab_cmap = :PuBu
+ab_cgrad = cgrad(ab_cmap, collect(0.0:0.2:0.8), categorical=false, rev=false)
+## Plotting the GENUS version as a heatmap, only aggregated genesets
+plot_geneset_genusab_sub = deepcopy(plot_geneset_genusab_table)
 
-organisms_df = CSV.read("manuscript/FSEA/exports_neuroactives/unirefannotations.csv", DataFrame; stringtype = String)
-# genus_level_data = select(khula_pre_data_genus, Not(mdata_cols[mdata_cols ∈ Ref(names(khula_pre_data_genus))]))
+# Define key genera you want to show explicitly
+focus_genera = [
+    "g__Bifidobacterium",
+    "g__Klebsiella",
+    "g__Escherichia",
+    "g__Bacteroides"
+]
 
-# genus_level_abundances = sort(DataFrame(:gen => names(genus_level_data), :ab => mean.(eachcol(genus_level_data))), :ab)
-# genus_level_abundances.cumab = cumsum(genus_level_abundances.ab)
+# Normalize the abundance *within each geneset* so that total abundance per geneset = 1
+geneset_grouped = groupby(plot_geneset_genusab_sub, :geneset)
+for g in geneset_grouped
+    total = sum(g.ab)
+    if total > 0
+        g.ab .= g.ab ./ total
+    end
+end
+plot_geneset_genusab_sub = vcat(geneset_grouped...)  # reassemble
 
-counts_df = DataFrames.combine(
-    groupby(organisms_df, [:geneset, :organism]),
-    nrow => :count,
-    :organism => (x -> map(y -> replace(y, "g__" => ""), x)) => :clean_organism
+# Collapse all genera not in your focus list into "Other"
+plot_geneset_genusab_sub.gen = ifelse.(
+    in.(plot_geneset_genusab_sub.gen, Ref(focus_genera)),
+    plot_geneset_genusab_sub.gen,
+    "Other"
 )
 
-counts_df = DataFrames.combine(
-    groupby(counts_df, [:geneset]),
-    :clean_organism => identity => :organism,
-    :count => ( x -> x ./ sum(x) ) => :proportion
+# Aggregate abundance for duplicates (e.g. same gene/genus after pooling)
+plot_geneset_genusab_sub = DataFrames.combine(
+    groupby(plot_geneset_genusab_sub, [:geneset, :gen]),
+    # groupby(plot_geneset_genusab_sub, [:geneset, :gene, :gen]),
+    :ab => sum => :ab
 )
 
-choice_genera = Dict(
-    "Bifidobacterium" => (stack_pos = 1, bug_color = (:blue, 0.9)),
-    "Bacteroides" => (stack_pos = 2, bug_color = (:orange, 0.9)),
-    "Escherichia" => (stack_pos = 3, bug_color = (:red, 0.9)),
-    "Klebsiella" => (stack_pos = 4, bug_color = (:green, 0.9)),
-    # "Veillonella" => (stack_pos = 5, bug_color = (:purple, 0.9)),
-    "Enterococcus" => (stack_pos = 6, bug_color = (:yellow, 0.9))
+# Transform and pivot to wide format
+plot_geneset_genusab_sub.gen = [ replace(el, "g__" => "") for el in plot_geneset_genusab_sub.gen ]
+plot_geneset_genusab_sub.ab_log = log10.((plot_geneset_genusab_sub.ab .+ 1e-8) * 1e8)
+plot_df_wide = unstack(plot_geneset_genusab_sub, [ :geneset ], :gen, :ab)
+# plot_df_wide = unstack(plot_geneset_genusab_sub, [:geneset, :gene], :gen, :ab)
+
+# Fill missing values with zero
+for i in 1:nrow(plot_df_wide)
+    for j in 1:ncol(plot_df_wide)
+        if ismissing(plot_df_wide[i, j])
+            plot_df_wide[i, j] = 0.0
+        end
+    end
+end
+
+# Sort rows by geneset/gene and columns alphabetically (so "Other" will come last)
+sort!(plot_df_wide, :geneset)
+genus_cols = sort(names(plot_df_wide, Not(:geneset, :Other)))
+plot_df_wide = plot_df_wide[:, vcat(["geneset"], genus_cols, ["Other"])]
+
+mat = Matrix(plot_df_wide[:, Not([:geneset])])
+genera = names(plot_df_wide, Not([:geneset]))
+genera = vcat( [ rich(el, font = :italic) for el in genera[1:(end-1)] ], [ rich(genera[end]) ] )
+ylabs = plot_df_wide.geneset
+
+# Plot
+ax_genus_aggregate = Axis(
+    F_Subfig[1, 1],
+    xticklabelrotation = pi/5,
+    yticks = (1:length(ylabs), ylabs),
+    xticks = (1:length(genera), genera),
+    xlabel = "Species",
+    ylabel = "Gene set",
+    title = "Gene set abundance\ncarried by select genera",
+    yreversed = true,
+    xreversed = false
 )
 
-axis_names = Dict(
-    "Acetate synthesis" => "Acetate\nsynthesis",
-    "Butyrate synthesis" => "Butyrate\nsynthesis",
-    "Menaquinone synthesis" => "Menaquinone\nsynthesis",
-    "Quinolinic acid degradation" => "Quinolinic acid\ndegradation",
-    "GABA synthesis" => "GABA\nsynthesis",
-    "Glutamate synthesis" => "Glutamate\nsynthesis",
-    "Tryptophan synthesis" => "Tryptophan\nsynthesis"
+hm_genus_aggregate = heatmap!(ax_genus_aggregate, mat'; colormap = ab_cgrad)
+
+## Plotting the SPECIES version as a heatmap, only aggregated genesets
+plot_geneset_speciesab_sub = deepcopy(plot_geneset_speciesab_table)
+
+# Define key species you want to show explicitly
+focus_species = [
+    "s__Bifidobacterium_longum",
+    "s__Bifidobacterium_breve",
+    "s__Bifidobacterium_bifidum",
+    "s__Klebsiella_pneumoniae",
+    "s__Escherichia_coli",
+    "s__Bacteroides_vulgatus",
+]
+
+# Normalize the abundance *within each geneset* so that total abundance per geneset = 1
+geneset_grouped = groupby(plot_geneset_speciesab_sub, :geneset)
+for g in geneset_grouped
+    total = sum(g.ab)
+    if total > 0
+        g.ab .= g.ab ./ total
+    end
+end
+plot_geneset_speciesab_sub = vcat(geneset_grouped...)  # reassemble
+
+# Collapse all species not in your focus list into "Other"
+plot_geneset_speciesab_sub.spec = ifelse.(
+    in.(plot_geneset_speciesab_sub.spec, Ref(focus_species)),
+    plot_geneset_speciesab_sub.spec,
+    "Other"
 )
 
-counts_df[:, :grouped_organism] .= ifelse.(counts_df.organism .∈ Ref(keys(choice_genera)), counts_df.organism, "Other")
-counts_df = DataFrames.combine(groupby(counts_df, [:geneset, :grouped_organism]), :proportion => sum => :proportion)
-counts_df = DataFrames.combine(groupby(counts_df, [:geneset]), groupindices => :xs, :proportion => identity => :proportion, :grouped_organism => identity => :grouped_organism)
-
-push!(choice_genera, "Other" => (stack_pos = 12, bug_color = (:gray, 0.4)))
-
-axE = Axis(
-    F_Subfig[1,1],
-    xticks = (
-        collect(1:length(unique(counts_df.xs))),
-        [ axis_names[subset(counts_df, :xs => (x -> x .== el)).geneset[1]] for el in 1:length(keys(axis_names)) ]
-    ),
-    ylabel = "Genus proportion/contribution"
-)
-hidexdecorations!(axE; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = true, minorticks = true )
-hideydecorations!(axE; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = true, minorticks = true )
-
-bpEg = barplot!(
-    axE,
-    counts_df.xs,# .+ 1.2,
-    counts_df.proportion,
-    stack = [ choice_genera[el][:stack_pos] for el in counts_df.grouped_organism ],
-    color = [ choice_genera[el][:bug_color] for el in counts_df.grouped_organism ],
-    gap = 0.2
+# Aggregate abundance for duplicates (e.g. same gene/species after pooling)
+plot_geneset_speciesab_sub = DataFrames.combine(
+    groupby(plot_geneset_speciesab_sub, [:geneset, :spec]),
+    # groupby(plot_geneset_speciesab_sub, [:geneset, :gene, :spec]),
+    :ab => sum => :ab
 )
 
-Legend(
-    F_Subfig[1, 2],
-    [
-        PolyElement(; color=choice_genera["Bifidobacterium"].bug_color, strokewidth=1),
-        PolyElement(; color=choice_genera["Bacteroides"].bug_color, strokewidth=1),
-        PolyElement(; color=choice_genera["Escherichia"].bug_color, strokewidth=1),
-        PolyElement(; color=choice_genera["Klebsiella"].bug_color, strokewidth=1),
-        # PolyElement(; color=choice_genera["Veillonella"].bug_color, strokewidth=1),
-        PolyElement(; color=choice_genera["Enterococcus"].bug_color, strokewidth=1),
-        PolyElement(; color=choice_genera["Other"].bug_color, strokewidth=1)
-    ],
-    [
-        "Bifidobacterium",
-        "Bacteroides",
-        "Escherichia",
-        "Klebsiella",
-        # "Veillonella",
-        "Enterococcus",
-        "Other"
-    ];
-    orientation = :vertical,
-    tellheight = false,
-    tellwidth = false,
-    nbanks = 1
+# Transform and pivot to wide format
+plot_geneset_speciesab_sub.spec = [ replace(el, "s__" => "") for el in plot_geneset_speciesab_sub.spec ]
+plot_geneset_speciesab_sub.ab_log = log10.((plot_geneset_speciesab_sub.ab .+ 1e-8) * 1e8)
+plot_df_wide = unstack(plot_geneset_speciesab_sub, [ :geneset ], :spec, :ab)
+# plot_df_wide = unstack(plot_geneset_speciesab_sub, [:geneset, :gene], :spec, :ab)
+
+# Fill missing values with zero
+for i in 1:nrow(plot_df_wide)
+    for j in 1:ncol(plot_df_wide)
+        if ismissing(plot_df_wide[i, j])
+            plot_df_wide[i, j] = 0.0
+        end
+    end
+end
+
+sort!(plot_df_wide, :geneset)
+species_cols = sort(names(plot_df_wide, Not(:geneset, :Other)))
+plot_df_wide = plot_df_wide[:, vcat(["geneset"], species_cols, ["Other"])]
+mat = Matrix(plot_df_wide[:, Not([:geneset])])
+species = names(plot_df_wide, Not([:geneset]))
+species = [ replace(el, "_" => " ") for el in species ]
+species = vcat( [ rich(el, font = :italic) for el in species[1:(end-1)] ], [ rich(species[end]) ] )
+ylabs = plot_df_wide.geneset
+
+ax_species_aggregate = Axis(
+    G_Subfig[1, 1],
+    xticklabelrotation = pi/5,
+    yticks = (1:length(ylabs), ylabs),
+    xticks = (1:length(species), species),
+    xlabel = "Species",
+    title = "Gene set abundance\ncarried by select species",
+    yreversed = true,
+    xreversed = false
 )
 
+hm_species_aggregate = heatmap!(ax_species_aggregate, mat'; colormap = ab_cgrad)
+
+Colorbar(G_Subfig[1,2], hm_species_aggregate; label = "Normalized carried abundance")
+
+linkyaxes!(ax_genus_aggregate, ax_species_aggregate)
+hideydecorations!(ax_species_aggregate; label = true, ticklabels = true, ticks = false, grid = true, minorgrid = true, minorticks = false )
+hideydecorations!(ax_genus_aggregate; label = true, ticklabels = false, ticks = false, grid = true, minorgrid = true, minorticks = false )
+
+Label(FG_Subfig[1, 0, Left()], "Gene set", rotation = pi/2)
 ## Fixing global layout and labeling panels
 
-colsize!(ABC_Subfig, 1, Relative(0.5))
-colsize!(ABC_Subfig, 2, Relative(0.5))
+colsize!(ABC_Subfig, 1, Relative(0.50))
+colsize!(ABC_Subfig, 2, Relative(0.50))
 
-rowsize!(AB_Subfig, 1, Relative(0.8))
-rowsize!(AB_Subfig, 2, Relative(0.2))
+rowsize!(AB_Subfig, 1, Relative(0.7))
+rowsize!(AB_Subfig, 2, Relative(0.3))
 
-rowsize!(C_Subfig, 1, Relative(0.8))
-rowsize!(C_Subfig, 2, Relative(0.2))
+colgap!(AB_Subfig, 3)
+
+rowsize!(C_Subfig, 1, Relative(0.7))
+rowsize!(C_Subfig, 2, Relative(0.3))
 
 colsize!(C_Subfig_plots, 1, Relative(0.1))
 colsize!(C_Subfig_plots, 2, Relative(0.9))
@@ -487,19 +564,23 @@ colsize!(DE_Subfig, 3, Relative(0.33))
 rowsize!(DE_Subfig, 1, Relative(0.4))
 rowsize!(DE_Subfig, 2, Relative(0.6))
 
-colsize!(F_Subfig, 1, Relative(0.80))
-colsize!(F_Subfig, 2, Relative(0.20))
+colsize!(FG_Subfig, 0, Relative(0.01))
+colsize!(FG_Subfig, 1, Relative(0.40))
+colsize!(FG_Subfig, 2, Relative(0.59))
 
-rowsize!(fig.layout, 1, Relative(0.35))
-rowsize!(fig.layout, 2, Relative(0.40))
-rowsize!(fig.layout, 3, Relative(0.25))
+rowsize!(fig.layout, 1, Relative(0.33))
+rowsize!(fig.layout, 2, Relative(0.37))
+rowsize!(fig.layout, 3, Relative(0.30))
 
-Label(ABC_Subfig[1, 1, TopLeft()], "a", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
-Label(ABC_Subfig[1, 2, TopLeft()], "b", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
-Label(ABC_Subfig[1, 3, TopLeft()], "c", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(AB_Subfig_plots[1, 1, TopLeft()], "a", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(AB_Subfig_plots[1, 2, TopLeft()], "b", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(C_Subfig[1, 1, TopLeft()], "c", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
 Label(DE_Subfig[1, 1, TopLeft()], "d", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
 Label(DE_Subfig[2, 1, TopLeft()], "e", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
 Label(F_Subfig[1, 1, TopLeft()], "f", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(G_Subfig[1, 1, TopLeft()], "g", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+
+fig
 
 ## Export Figure
 save("manuscript/figures/Figure2.png", fig)
