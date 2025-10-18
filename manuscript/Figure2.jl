@@ -440,7 +440,7 @@ sort!(plot_df_wide, :geneset)
 genus_cols = sort(names(plot_df_wide, Not(:geneset, :Other)))
 plot_df_wide = plot_df_wide[:, vcat(["geneset"], genus_cols, ["Other"])]
 
-mat = Matrix(plot_df_wide[:, Not([:geneset])])
+gen_mat = Matrix(plot_df_wide[:, Not([:geneset])])
 genera = names(plot_df_wide, Not([:geneset]))
 genera = vcat( [ rich(el, font = :italic) for el in genera[1:(end-1)] ], [ rich(genera[end]) ] )
 ylabs = plot_df_wide.geneset
@@ -458,7 +458,7 @@ ax_genus_aggregate = Axis(
     xreversed = false
 )
 
-hm_genus_aggregate = heatmap!(ax_genus_aggregate, mat'; colormap = ab_cgrad)
+hm_genus_aggregate = heatmap!(ax_genus_aggregate, gen_mat'; colormap = ab_cgrad, colorrange = [0.0, 0.75])
 
 ## Plotting the SPECIES version as a heatmap, only aggregated genesets
 plot_geneset_speciesab_sub = deepcopy(plot_geneset_speciesab_table)
@@ -515,7 +515,7 @@ end
 sort!(plot_df_wide, :geneset)
 species_cols = sort(names(plot_df_wide, Not(:geneset, :Other)))
 plot_df_wide = plot_df_wide[:, vcat(["geneset"], species_cols, ["Other"])]
-mat = Matrix(plot_df_wide[:, Not([:geneset])])
+spe_mat = Matrix(plot_df_wide[:, Not([:geneset])])
 species = names(plot_df_wide, Not([:geneset]))
 species = [ replace(el, "_" => " ") for el in species ]
 species = vcat( [ rich(el, font = :italic) for el in species[1:(end-1)] ], [ rich(species[end]) ] )
@@ -532,9 +532,10 @@ ax_species_aggregate = Axis(
     xreversed = false
 )
 
-hm_species_aggregate = heatmap!(ax_species_aggregate, mat'; colormap = ab_cgrad)
+hm_species_aggregate = heatmap!(ax_species_aggregate, spe_mat'; colormap = ab_cgrad, colorrange = [0.0, 0.75])
 
-Colorbar(G_Subfig[1,2], hm_species_aggregate; label = "Normalized carried abundance")
+Colorbar(G_Subfig[1,2], hm_genus_aggregate; label = "Normalized carried abundance")
+# Colorbar(G_Subfig[1,2], hm_species_aggregate; label = "Normalized carried abundance")
 
 linkyaxes!(ax_genus_aggregate, ax_species_aggregate)
 hideydecorations!(ax_species_aggregate; label = true, ticklabels = true, ticks = false, grid = true, minorgrid = true, minorticks = false )
