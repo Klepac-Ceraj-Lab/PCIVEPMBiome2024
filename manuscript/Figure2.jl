@@ -228,11 +228,11 @@ Legend(
 )
 
 aux_annot = annotations(
-    plot_comparative_df.variable,
+    [ replace(el, "_" => "\n") for el in plot_comparative_df.variable ],
     Point.(collect(zip(log.(plot_comparative_df.pvalue).*(-1), plot_comparative_df.weightedImportance))),
-    color = point_colors, fontsize = 6
+    color = point_colors, fontsize = 8, rotation = pi/8, align = (:center, :center)
 )
-
+save("manuscript/figures/aux_annot.png", aux_annot)
 # Middle part - FSEA plots
 
 datadir = "manuscript/FSEA/"
