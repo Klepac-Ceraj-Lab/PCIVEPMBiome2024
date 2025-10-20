@@ -24,6 +24,16 @@ module PCIVEPMBiome2024
     using CodecZlib
     using Leap
 
+    include("utils.jl")
+
+    export load_custom_unirefs
+
+    include("gene_glm_src.jl")
+
+    export coefrow_by_term
+    export fit_one
+    export write_results
+
     include("runlms.jl")
     
     export runlms
@@ -38,5 +48,6 @@ module PCIVEPMBiome2024
     export pvalue
     export fsea
     export enrichment_score
+    export perform_fsea
 
 end

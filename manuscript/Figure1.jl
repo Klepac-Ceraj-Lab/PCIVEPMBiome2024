@@ -33,42 +33,12 @@ using StatsBase
 # 1. Loading data
 #####
 include(joinpath(Base.pwd(), "notebooks", "load_data.jl"))
-uniref_color_mdata = DataFrame(get(unirefs_filtered_nonzeroentropy))
-
-khula_pci_mbiome_data = filter_prevalence(khula_pci_mbiome_data, 0.001)
-
-a = DataFrame(
-        :species => names(select(khula_pci_mbiome_data, Not(mdata_cols))),
-        :cor => [
-        cor(
-            khula_pci_mbiome_data.InfantVisAtt,
-            select(khula_pci_mbiome_data, Not(mdata_cols))[:,el]
-        ) for el in names(select(khula_pci_mbiome_data, Not(mdata_cols))) ],
-        :nzcor => [
-        corspearman(
-            subset(khula_pci_mbiome_data, el => x -> x .> 0.0).InfantVisAtt,
-            subset(khula_pci_mbiome_data, el => x -> x .> 0.0)[:,el]
-        ) for el in names(select(khula_pci_mbiome_data, Not(mdata_cols))) ],
-        :spe => [
-        corspearman(
-            khula_pci_mbiome_data.InfantVisAtt,
-            select(khula_pci_mbiome_data, Not(mdata_cols))[:,el]
-        ) for el in names(select(khula_pci_mbiome_data, Not(mdata_cols))) ],
-        :nzspe => [
-        corspearman(
-            subset(khula_pci_mbiome_data, el => x -> x .> 0.0).InfantVisAtt,
-            subset(khula_pci_mbiome_data, el => x -> x .> 0.0)[:,el]
-        ) for el in names(select(khula_pci_mbiome_data, Not(mdata_cols))) ],
-)
-
-subset(a, :cor => x -> .!(isnan.(x)))
-sort!(a, :cor)
 
 #####
 # Distance analysis
 #####
 
-unidm = Microbiome.braycurtis(unirefs_filtered_nonzeroentropy)
+unidm = Microbiome.braycurtis(unstratified_unirefs)
 uni_MDS_results = fit(MDS, unidm; maxoutdim = 20, distances=true)
 uni_MDS_columns = DataFrame(:MDS1 => uni_MDS_results.U[:,1], :MDS2 => uni_MDS_results.U[:,2], :MDS3 => uni_MDS_results.U[:,3], :MDS4 => uni_MDS_results.U[:,4], :MDS5 => uni_MDS_results.U[:,5])
 uni_MDS_variances = uni_MDS_results.λ ./ sum(uni_MDS_results.λ)
@@ -80,7 +50,7 @@ spe_MDS_variances = spe_MDS_results.λ ./ sum(spe_MDS_results.λ)
 
 ## Printing some useful stats for text
 spects = sum(Matrix(select(khula_pci_mbiome_data, Not(mdata_cols))) .> 0.0, dims = 2)
-gfcts = sum(unirefs_filtered_nonzeroentropy.abundances .> 0.0, dims = 1)
+gfcts = sum(unstratified_unirefs.abundances .> 0.0, dims = 1)
 println("---------------- PROFILE STATS -----------------")
 println("Species count quantiles: $(quantile(spects))")
 println("Species count MEAN/SD: $(mean(spects)), $(std(spects))")
@@ -177,7 +147,7 @@ scB = scatter!(
     uni_MDS_columns[:,1],
     uni_MDS_columns[:,3];
     markersize = 12,
-    color = uniref_color_mdata.InfantVisAtt,
+    color = unimdata.InfantVisAtt,
     colormap = :viridis
 )
 
@@ -317,65 +287,6 @@ fig
 save(joinpath(Base.pwd(),"manuscript", "figures", "Figure1.png"), fig)
 save(joinpath(Base.pwd(),"manuscript", "figures", "Figure1.eps"), fig)
 save(joinpath(Base.pwd(),"manuscript", "figures", "Figure1.pdf"), fig)
-
-#####
-# Auxiliary Figure
-#####
-
-figsx = Figure(size = (1200, 500))
-
-axSXA = Axis(
-    figsx[1,1],
-    xlabel = "Maternal unpredictability",
-    ylabel = "Visual Orienting Behavior (VOB)",
-    title = "Bifidobacterium breve"
-)
-
-axSXB = Axis(
-    figsx[1,2],
-    xlabel = "Maternal unpredictability",
-    ylabel = "Visual Orienting Behavior (VOB)",
-    title = "Bifidobacterium longum"
-)
-
-axSXC = Axis(
-    figsx[1,3],
-    xlabel = "Maternal unpredictability",
-    ylabel = "Visual Orienting Behavior (VOB)",
-    title = "Bifidobacterium class"
-)
-
-scXA = scatter!(
-    axSXA,
-    khula_pci_mbiome_data.MaternalEntropy,
-    khula_pci_mbiome_data.InfantVisAtt;
-    markersize = 12,
-    color = khula_pci_mbiome_data.Bifidobacterium_breve,
-    colormap = :viridis
-)
-
-scXB = scatter!(
-    axSXB,
-    khula_pci_mbiome_data.MaternalEntropy,
-    khula_pci_mbiome_data.InfantVisAtt;
-    markersize = 12,
-    color = khula_pci_mbiome_data.Bifidobacterium_longum,
-    colormap = :viridis
-)
-
-scXC = scatter!(
-    axSXC,
-    khula_pci_mbiome_data.MaternalEntropy,
-    khula_pci_mbiome_data.InfantVisAtt;
-    markersize = 12,
-    color = [ bifido_cdict[el] for el in assign_bifido_class(khula_pci_mbiome_data) ],
-    colormap = :viridis
-)
-
-Colorbar(figsx[2,1], scXA, vertical = false)
-Colorbar(figsx[2,2], scXB, vertical = false)
-
-figsx
 
 #####
 # Exporting Supplementary Figures

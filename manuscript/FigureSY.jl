@@ -1,5 +1,36 @@
 # Species megaplot - same plot (InfVisAttn x MaternalEntropy) colored by each of the species
 
+## Preliminary: toy correlation analysis
+
+cordf = DataFrame(
+        :species => names(select(khula_pci_mbiome_data, Not(mdata_cols))),
+        :cor => [
+        cor(
+            khula_pci_mbiome_data.InfantVisAtt,
+            select(khula_pci_mbiome_data, Not(mdata_cols))[:,el]
+        ) for el in names(select(khula_pci_mbiome_data, Not(mdata_cols))) ],
+        :nzcor => [
+        corspearman(
+            subset(khula_pci_mbiome_data, el => x -> x .> 0.0).InfantVisAtt,
+            subset(khula_pci_mbiome_data, el => x -> x .> 0.0)[:,el]
+        ) for el in names(select(khula_pci_mbiome_data, Not(mdata_cols))) ],
+        :spe => [
+        corspearman(
+            khula_pci_mbiome_data.InfantVisAtt,
+            select(khula_pci_mbiome_data, Not(mdata_cols))[:,el]
+        ) for el in names(select(khula_pci_mbiome_data, Not(mdata_cols))) ],
+        :nzspe => [
+        corspearman(
+            subset(khula_pci_mbiome_data, el => x -> x .> 0.0).InfantVisAtt,
+            subset(khula_pci_mbiome_data, el => x -> x .> 0.0)[:,el]
+        ) for el in names(select(khula_pci_mbiome_data, Not(mdata_cols))) ],
+)
+
+subset(cordf, :cor => x -> .!(isnan.(x)))
+sort!(cordf, :cor)
+
+## Actual figure building
+
 spectoplot = [
     "Bifidobacterium_breve",
     "Bifidobacterium_longum",
@@ -116,4 +147,4 @@ for irow in 1:6
     end
 end
 
-save("manuscript/figures/allspe_expl.png", fig)
+save(joinpath(Base.pwd(),"manuscript", "figures", "FigureSY.png"), fig)
