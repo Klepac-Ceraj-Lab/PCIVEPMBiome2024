@@ -1,6 +1,6 @@
 # MU_VOB - Reproducible Stats
 
-This folder contains code to reproduce the analyses for the paper.
+This folder contains code to reproduce the Maternal Unpredicatability - VOB analyses for the paper.
 
 ## Contents
 
