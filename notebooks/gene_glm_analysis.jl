@@ -10,9 +10,12 @@ using ProgressMeter
 # Input data for all GLM models
 
 indf = DataFrame(get(unstratified_unirefs_filtered))
-indf.InfantVisAtt = Leap.rangenormalize(indf.InfantVisAtt)
-indf.MaternalEntropy = Leap.rangenormalize(indf.MaternalEntropy)
-indf.mbiome_sample_age = Leap.rangenormalize(indf.mbiome_sample_age)
+# indf.InfantVisAtt = Leap.rangenormalize(indf.InfantVisAtt)
+# indf.MaternalEntropy = Leap.rangenormalize(indf.MaternalEntropy)
+# indf.mbiome_sample_age = Leap.rangenormalize(indf.mbiome_sample_age)
+indf.InfantVisAtt = Leap.autonormalize(indf.InfantVisAtt)
+indf.MaternalEntropy = Leap.autonormalize(indf.MaternalEntropy)
+indf.mbiome_sample_age = Leap.autonormalize(indf.mbiome_sample_age)
 
 ## convenience
 featlist = collect(featurenames(unstratified_unirefs_filtered))
