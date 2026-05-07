@@ -4,9 +4,10 @@
 *.jl.mem
 /Manifest.toml
 /docs/build/
+/data/**.*
 .vscode
 .envrc
-/manuscript/figures/glm/*
+/manuscript/figures/glm*
 /figures_old
 /ext
 /processed_data
@@ -16,3 +17,4 @@
 *.jld*
 *.csv*
 *.arrow
+**/FSEA*
