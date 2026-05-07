@@ -24,6 +24,7 @@ using GLM
 using CodecZlib
 using ColorSchemes
 using Leap
+using LinearAlgebra
 using PCIVEPMBiome2024
 
 Random.seed!(0)
@@ -31,7 +32,13 @@ Random.seed!(0)
 #####
 # 1. Loading data
 #####
-include(joinpath(Base.pwd(), "notebooks", "load_data.jl"))
+paper_sample_set = readlines(joinpath(Base.pwd(), "data", "kept_complete_samples.txt"))
+
+mdata_cols, khula_pci_mbiome_data,
+  unstratified_unirefs, stratified_unirefs,
+  unstratified_unirefs_filtered, stratified_unirefs_filtered = load_pcimbiome_data(paper_sample_set)
+
+unimdata = DataFrame(get(unstratified_unirefs_filtered))
 
 #####
 # Sourcing LMs and FSEA analysis from separate file
@@ -39,7 +46,7 @@ include(joinpath(Base.pwd(), "notebooks", "load_data.jl"))
 include(joinpath(Base.pwd(), "notebooks", "rf_analysis.jl"))
 include(joinpath(Base.pwd(), "notebooks", "maaslin3_analysis.jl"))
 include(joinpath(Base.pwd(), "notebooks", "gene_glm_analysis.jl"))
-include(joinpath(Base.pwd(), "notebooks", "fsea_analysis.jl"))
+include(joinpath(Base.pwd(), "notebooks", "fsea_sens_analysis.jl"))
 include(joinpath(Base.pwd(), "notebooks", "fetch_neuroactive_abundance.jl"))
 
 #####
@@ -66,7 +73,6 @@ E_Subfig = GridLayout(DE_Subfig[2,:]; alignmode = Inside())
 
 F_Subfig = GridLayout(FG_Subfig[1,1]; alignmode = Inside())
 G_Subfig = GridLayout(FG_Subfig[1,2:3]; alignmode = Inside())
-
 
 ## A+B - Abundance - Outcome scatterplots
 
@@ -584,6 +590,12 @@ Label(G_Subfig[1, 1, TopLeft()], "g", fontsize = 22, font = :bold, halign = :rig
 fig
 
 ## Export Figure
-save("manuscript/figures/Figure2.png", fig)
-save("manuscript/figures/Figure2.eps", fig)
-save("manuscript/figures/Figure2.pdf", fig)
+save("manuscript/figures/Figure4.png", fig)
+save("manuscript/figures/Figure4.eps", fig)
+save("manuscript/figures/Figure4.pdf", fig)
+
+#####
+# Exporting Supplementary Figures
+#####
+
+include(joinpath(Base.pwd(), "manuscript", "FigureS1.jl"))

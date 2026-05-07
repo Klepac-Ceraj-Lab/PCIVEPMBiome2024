@@ -179,6 +179,8 @@ colsize!(fig.layout, 1, Relative(0.48))
 colsize!(fig.layout, 2, Relative(0.35))
 colsize!(fig.layout, 3, Relative(0.17))
 
-save(joinpath(Base.pwd(),"manuscript", "figures", "FigureS3.png"), fig)
-save(joinpath(Base.pwd(),"manuscript", "figures", "FigureS3.eps"), fig)
-save(joinpath(Base.pwd(),"manuscript", "figures", "FigureS3.pdf"), fig)
+fig
+
+save(joinpath(Base.pwd(),"manuscript", "figures", "FigureS5.png"), fig)
+save(joinpath(Base.pwd(),"manuscript", "figures", "FigureS5.eps"), fig)
+save(joinpath(Base.pwd(),"manuscript", "figures", "FigureS5.pdf"), fig)

@@ -116,7 +116,8 @@ Label(fig[3, 1, TopLeft()], "d", fontsize = 22, font = :bold, halign = :right, a
 Label(fig[3, 2, TopLeft()], "e", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
 Label(fig[3, 3, TopLeft()], "f", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
 
+fig
 
-save(joinpath(Base.pwd(),"manuscript", "figures", "FigureS2.png"), fig)
-save(joinpath(Base.pwd(),"manuscript", "figures", "FigureS2.eps"), fig)
-save(joinpath(Base.pwd(),"manuscript", "figures", "FigureS2.pdf"), fig)
+save(joinpath(Base.pwd(),"manuscript", "figures", "FigureS6.png"), fig)
+save(joinpath(Base.pwd(),"manuscript", "figures", "FigureS6.eps"), fig)
+save(joinpath(Base.pwd(),"manuscript", "figures", "FigureS6.pdf"), fig)
