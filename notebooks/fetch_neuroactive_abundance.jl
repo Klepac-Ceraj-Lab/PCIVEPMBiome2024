@@ -12,6 +12,7 @@ using CairoMakie
 # Part 1: Getting the gene-species table
 #####
 gene_spec_table = CSV.read(joinpath(Base.pwd(), "data", "long_stratified_gfs.csv"), DataFrame)
+subset!(gene_spec_table, :sample => x -> x .∈ Ref(paper_sample_set))
 
 # Transform the "spec_raw" column by splitting each string at the dot,
 # extracting the first two parts into new columns.
@@ -65,8 +66,8 @@ gene_species_ab_table = gene_species_ab_table[retain_species_rows, :]
 #####
 
 # Get the list of neuroactive KOs
-neuroactivepath = datafiles("gbm.txt")
-map_ko_uniref_path = datafiles("map_ko_uniref90.txt.gz")
+neuroactivepath = joinpath(Base.pwd(), "data", "gbm.txt")
+map_ko_uniref_path = joinpath(Base.pwd(), "data", "map_ko_uniref90.txt.gz")
 neuroactivekos = Leap.get_neuroactive_kos(neuroactivepath; consolidate = true)
 
 # Map all the KOs to UNIREFS
@@ -88,12 +89,12 @@ gene_geneset_lines = Set{Tuple{String, String}}()
 for interesting_geneset in
     [
         "Acetate synthesis",
-        "Butyrate synthesis",
         "Menaquinone synthesis",
         "Quinolinic acid degradation",
         "GABA synthesis",
         "Glutamate synthesis",
-        "Tryptophan synthesis",
+        "ClpB",
+        "Tryptophan synthesis"
     ]
 
     @showprogress for corresponding_uniref in neuroactive_unirefs[interesting_geneset]
@@ -152,63 +153,4 @@ final_geneset_speciesabnormalized_table = DataFrames.combine(groupby(geneset_spe
 sort!(final_geneset_speciesabnormalized_table, [:geneset, :spec])
 sort!(final_geneset_speciesabnormalized_table, :proportional_ab; rev = true)
 
-CSV.write(joinpath(Base.pwd(), "manuscript", "FSEA", "carrier_abundance_genesets_species.csv"), final_geneset_speciesabnormalized_table)
-
-### Attic/Graveyard
-# #####
-# # What is B3DS10 about?
-# #####
-
-# unihead = DataFrame(get(unstratified_unirefs_filtered))
-# unihead.mygene = vec(abundances(unstratified_unirefs_filtered["UniRef90_B3DS10", :]))
-# cor(unihead.mygene, khula_pci_mbiome_data.Bifidobacterium_longum)
-
-# #####
-# # Are Bbreve and Blongum carrying differental amounts of genesets?
-# #####
-# df_bif = filter(:spec => s -> occursin(r"s__Bifidobacterium_(longum|breve)", s), plot_geneset_speciesab_sub)
-
-# # Keep only neuroactive genesets
-# neuroactive_sets = unique(df_bif.geneset[occursin.("neuroactive", df_bif.geneset)])  # or define your own list
-# df_bif = filter(:geneset => ∈(neuroactive_sets), df_bif)
-
-# # Aggregate total abundance per geneset × species
-# df_sum = combine(groupby(df_bif, [:geneset, :spec]), :ab => sum => :total_abundance)
-
-# # Pivot species to columns (longum and breve)
-# df_wide = unstack(df_sum, :spec, :total_abundance)
-
-# # Replace missings with 0 (some genesets might not be carried by one of them)
-# foreach(c -> coalesce!(df_wide[!, c], 0.0), names(df_wide, Not(:geneset)))
-
-# # Optional: compute relative contribution of each species
-# df_wide.total = coalesce.(df_wide.s__Bifidobacterium_longum, 0.0) .+
-#                 coalesce.(df_wide.s__Bifidobacterium_breve, 0.0)
-# df_wide.longum_frac = df_wide.s__Bifidobacterium_longum ./ df_wide.total
-# df_wide.breve_frac = df_wide.s__Bifidobacterium_breve ./ df_wide.total
-
-# # Clean up any NaNs (genesets with 0 total)
-# replace!(df_wide.longum_frac, NaN => 0.0)
-# replace!(df_wide.breve_frac, NaN => 0.0)
-
-# # Sort by whichever species dominates
-# sort!(df_wide, :longum_frac, rev=true)
-
-# # Preview
-# first(df_wide, 10)
-
-# #####
-# # Bonus: proportional carrier count
-# #####
-
-# geneset_geneprev_table = vcat(joined_abs...)
-# rename!(geneset_geneprev_table, :ab => :count)
-# geneset_geneprev_table = DataFrames.combine(groupby(geneset_geneprev_table, [:geneset, :gen]), :count => ( x -> length(x) ) => :total_count)
-# # Normalize geneset prevs to 1.0
-# geneset_geneprevnormalized_table = groupby(geneset_geneprev_table, :geneset)
-# for g in geneset_geneprevnormalized_table
-#     sum_count = sum(g.total_count)
-#     g.total_count .= g.total_count ./ sum_count
-# end
-# final_geneset_geneprevnormalized_table = vcat(geneset_geneprevnormalized_table...)
-# sort!(final_geneset_geneprevnormalized_table, :total_count; rev = true)
+CSV.write(joinpath(Base.pwd(), "manuscript", "gene_glm", "carrier_abundance_genesets_species.csv"), final_geneset_speciesabnormalized_table)
