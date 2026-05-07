@@ -3,7 +3,7 @@
 # and generate the data files that will be shared to Dryad and
 # loaded by `DataToolkit.jl` .toml data collection configuration files.
 # It should not be sourced by individuals intending to reproduce the analysis, which should
-# rather use the exporta herein generated.
+# rather use the exports herein generated.
 #####
 
 using CSV
