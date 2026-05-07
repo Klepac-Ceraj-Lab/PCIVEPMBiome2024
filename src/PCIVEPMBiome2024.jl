@@ -21,8 +21,13 @@ module PCIVEPMBiome2024
     using CairoMakie
     using ThreadsX
     using GLM
+    using LinearAlgebra
     using CodecZlib
     using Leap
+
+    include("load_data.jl")
+
+    export load_pcimbiome_data
 
     include("utils.jl")
 
@@ -49,5 +54,7 @@ module PCIVEPMBiome2024
     export fsea
     export enrichment_score
     export perform_fsea
+    export perform_fsea_prevalence_sensitivity
+    export plot_fsea_sensitivity
 
 end
