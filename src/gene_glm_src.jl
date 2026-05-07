@@ -14,15 +14,22 @@ function fit_one(df, ab, formula::FormulaTerm, link::Link, wanted_terms::Vector{
     df = copy(df)
     df.bug = ab .> 0
 
-    # skip degenerate responses
-    if all(df.bug .== 0) || all(df.bug .== 1)
-        return [(; Name=t, var"Coef."=NaN, var"Std. Error"=NaN, z=NaN,
+    default_ret = [(; Name=t, var"Coef."=NaN, var"Std. Error"=NaN, z=NaN,
                    var"Pr(>|z|)"=NaN, var"Lower 95%"=NaN, var"Upper 95%"=NaN,
+                   var"Prevalence" = mean(df.bug),
                    feature=feature, kind="unirefs") for t in wanted_terms]
+
+    # skip degenerate responses
+    if all(df.bug .== 0) || all(df.bug .== 1) || !all(map( x -> length(unique(x)), eachcol(select(df, wanted_terms[wanted_terms .∈ Ref(names(df))]))) .> 1)
+        return default_ret
     end
 
     # fit
-    mod = GLM.glm(formula, df, Binomial(), link; dropcollinear=false, maxiter=100)
+    mod = try 
+        GLM.glm(formula, df, Binomial(), link; dropcollinear=false, maxiter=100)
+    catch e
+        return default_ret
+    end
 
     outs = NamedTuple[]
     for t in wanted_terms
@@ -31,7 +38,7 @@ function fit_one(df, ab, formula::FormulaTerm, link::Link, wanted_terms::Vector{
             r = (Name=t, var"Coef."=NaN, var"Std. Error"=NaN, z=NaN,
                  var"Pr(>|z|)"=NaN, var"Lower 95%"=NaN, var"Upper 95%"=NaN)
         end
-        push!(outs, (; r..., feature=feature, kind="unirefs"))
+        push!(outs, (; r..., var"Prevalence" = mean(df.bug), feature=feature, kind="unirefs"))
     end
     return outs
 end
