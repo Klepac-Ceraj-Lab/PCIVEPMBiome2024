@@ -1,18 +1,20 @@
 khula_rf_data = deepcopy(khula_pci_mbiome_data)
 khula_rf_data = filter_prevalence(khula_rf_data, 0.05)
+khula_rf_data.feeding_state = Float64.(khula_rf_data.feeding_state .== "ExclBreastFed")
+khula_rf_data.delivery_mode = Float64.(khula_rf_data.delivery_mode .== "Caesarean")
 khula_rf_data.InfantVisAtt = Leap.rangenormalize(khula_rf_data.InfantVisAtt)
-
+khula_rf_data.MaternalEntropy = Leap.rangenormalize(khula_rf_data.MaternalEntropy)
 select!(khula_rf_data, mdata_cols, :)
-select!(khula_rf_data, :subject_id, :sample, :datasource, :pci_assess_age, :InfantVisAtt, :)
 
 if isfile(joinpath(Base.pwd(), "manuscript", "models", "regression_VOB_NoEnt_FullCV_Results.jld"))
     JLD2.@load joinpath(Base.pwd(), "manuscript", "models", "regression_VOB_NoEnt_FullCV_Results.jld") regression_VOB_NoEnt_FullCV
 else
+    select!(khula_rf_data, :subject_id, :sample, :datasource, :MaternalEntropy, :InfantVisAtt, :child_sex, :)
     regression_VOB_NoEnt_FullCV = Leap.probe_regression_randomforest(
         "regression_VOB_NoEnt_FullCV",
         khula_rf_data,
         identity,
-        collect(findfirst(names(khula_rf_data) .== "mbiome_sample_age"):ncol(khula_rf_data)),
+        collect(findfirst(names(khula_rf_data) .== "child_sex"):ncol(khula_rf_data)),
         :InfantVisAtt;
         split_strat = "subject",
         custom_input_group = nothing,
@@ -36,11 +38,12 @@ end
 if isfile(joinpath(Base.pwd(), "manuscript", "models", "regression_VOB_WtEnt_FullCV_Results.jld"))
     JLD2.@load joinpath(Base.pwd(), "manuscript", "models", "regression_VOB_WtEnt_FullCV_Results.jld") regression_VOB_WtEnt_FullCV
 else
+    select!(khula_rf_data, :subject_id, :sample, :datasource, :InfantVisAtt, :child_sex, :MaternalEntropy, :)
     regression_VOB_WtEnt_FullCV = Leap.probe_regression_randomforest(
         "regression_VOB_WtEnt_FullCV",
         khula_rf_data,
         identity,
-        collect(findfirst(names(khula_rf_data) .== "MaternalEntropy"):ncol(khula_rf_data)),
+        collect(findfirst(names(khula_rf_data) .== "child_sex"):ncol(khula_rf_data)),
         :InfantVisAtt;
         split_strat = "subject",
         custom_input_group = nothing,
@@ -64,16 +67,15 @@ end
 #####
 # Now with MaternalEntropy
 #####
-select!(khula_rf_data, :subject_id, :sample, :datasource, :pci_assess_age, :MaternalEntropy, :)
-
 if isfile(joinpath(Base.pwd(), "manuscript", "models", "regression_ENT_NoVobFullCV_Results.jld"))
     JLD2.@load joinpath(Base.pwd(), "manuscript", "models", "regression_ENT_NoVobFullCV_Results.jld") regression_ENT_NoVobFullCV
 else
+    select!(khula_rf_data, :subject_id, :sample, :datasource, :InfantVisAtt, :MaternalEntropy, :child_sex, :)
     regression_ENT_NoVobFullCV = Leap.probe_regression_randomforest(
         "regression_ENT_NoVobFullCV",
         khula_rf_data,
         identity,
-        collect(findfirst(names(khula_rf_data) .== "mbiome_sample_age"):ncol(khula_rf_data)),
+        collect(findfirst(names(khula_rf_data) .== "child_sex"):ncol(khula_rf_data)),
         :MaternalEntropy;
         split_strat = "subject",
         custom_input_group = nothing,
@@ -97,6 +99,7 @@ end
 if isfile(joinpath(Base.pwd(), "manuscript", "models", "regression_ENT_WtVobFullCV_Results.jld"))
     JLD2.@load joinpath(Base.pwd(), "manuscript", "models", "regression_ENT_WtVobFullCV_Results.jld") regression_ENT_WtVobFullCV
 else
+    select!(khula_rf_data, :subject_id, :sample, :datasource, :MaternalEntropy, :child_sex, :InfantVisAtt, :)
     regression_ENT_WtVobFullCV = Leap.probe_regression_randomforest(
         "regression_ENT_WtVobFullCV",
         khula_rf_data,
