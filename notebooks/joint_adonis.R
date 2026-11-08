@@ -69,6 +69,9 @@ taxonomic_abundances <- select(taxonomic_data, !all_of(taxonomic_mdata_cols))
 functional_metadata <- select(functional_data, all_of(functional_mdata_cols))
 functional_abundances <- select(functional_data, !all_of(functional_mdata_cols))
 
+taxonomic_metadata$feeding_state <- factor(taxonomic_metadata$feeding_state, levels = c("ExclBreastFed", "Mixed", "ExclFormulaFed"))
+functional_metadata$feeding_state <- factor(functional_metadata$feeding_state, levels = c("ExclBreastFed", "Mixed", "ExclFormulaFed"))
+
 set.seed(42)
 D_taxa <- vegdist(as.matrix(taxonomic_abundances), method = "bray")
 D_unirefs <- vegdist(as.matrix(functional_abundances), method = "bray")

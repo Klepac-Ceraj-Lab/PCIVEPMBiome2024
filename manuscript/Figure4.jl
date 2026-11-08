@@ -45,15 +45,15 @@ unimdata = DataFrame(get(unstratified_unirefs_filtered))
 #####
 include(joinpath(Base.pwd(), "notebooks", "rf_analysis.jl"))
 include(joinpath(Base.pwd(), "notebooks", "maaslin3_analysis.jl"))
-include(joinpath(Base.pwd(), "notebooks", "gene_glm_analysis.jl"))
-include(joinpath(Base.pwd(), "notebooks", "fsea_sens_analysis.jl"))
+# include(joinpath(Base.pwd(), "notebooks", "gene_glm_analysis.jl"))
+# include(joinpath(Base.pwd(), "notebooks", "fsea_sens_analysis.jl"))
 include(joinpath(Base.pwd(), "notebooks", "fetch_neuroactive_abundance.jl"))
 
 #####
 # Figure plotting block
 #####
 
-fig = Figure(; size = (1200, 1300))
+fig = Figure(; size = (1200, 1200))
 
 ABC_Subfig = GridLayout(fig[1,:]; alignmode = Outside())
 DE_Subfig = GridLayout(fig[2,:]; alignmode = Outside())
@@ -163,7 +163,18 @@ cumulative_importance_threshold = 0.6
 plot_colorset = [t10[1], t10[3], t10[7], (:white, 0.)]
 
 ## 1. calculate the importances and the cumulative sum, excluding the relevant variables
-rf_model_importances = hpimportances(regression_VOB_NoEnt_FullCV, sort(report_regression_merits(regression_VOB_NoEnt_FullCV), :Val_RMSE_mean)[1, :Hyperpar_Idx]; change_hashnames=false)
+
+best_model_row = sort(report_regression_merits(regression_VOB_NoEnt_FullCV), :Val_Cor_mean; rev = true)[1, :]
+println("Best RF NoEnt model RMSE: $(best_model_row.Val_RMSE_mean[1])")
+println("Best RF NoEnt model R: $(best_model_row.Val_Cor_mean[1])")
+
+best_WtEnt_model_row = sort(report_regression_merits(regression_VOB_WtEnt_FullCV), :Val_Cor_mean; rev = true)[1, :]
+println("Best RF WtEnt model RMSE: $(best_WtEnt_model_row.Val_RMSE_mean[1])")
+println("Best RF WtEnt model R: $(best_WtEnt_model_row.Val_Cor_mean[1])")
+
+println("prior correlation in-set: $(cor(khula_pci_mbiome_data.InfantVisAtt, khula_pci_mbiome_data.MaternalEntropy))")
+
+rf_model_importances = hpimportances(regression_VOB_NoEnt_FullCV, best_model_row[:Hyperpar_Idx]; change_hashnames=false)
 rf_model_importances.cumulativeWeightedImportance = cumsum(rf_model_importances.weightedImportance)
 
 ## 2. get the data for linear models, from `Figure2-calculations.jl`
@@ -218,8 +229,8 @@ Legend(
 Legend(
     C_Subfig_legends[1, 2],
     [
-        MarkerElement(; marker=:circle, color=plot_colorset[1], strokewidth=1),
         MarkerElement(; marker=:circle, color=plot_colorset[3], strokewidth=1),
+        MarkerElement(; marker=:circle, color=plot_colorset[1], strokewidth=1),
         MarkerElement(; marker=:circle, color=plot_colorset[4], strokewidth=1),
     ],
     [
@@ -241,96 +252,20 @@ aux_annot = annotations(
 save("manuscript/figures/aux_annot.png", aux_annot)
 # Middle part - FSEA plots
 
-datadir = "manuscript/FSEA/"
-
-## Middle-top (Unique effects)
-
-res = NamedTuple(map(("entropy", "visual")) do mod
-    lms = CSV.read(joinpath(datadir, "lms_Model2_$mod.csv"), DataFrame)
-    Symbol(mod) => (;
-        lms = subset(lms, :z => x -> .!isnan.(x)),  # remove missing z (these are the intercepts)
-        na = Leap.getneuroactive(map(f-> replace(f, "UniRef90_"=>""), lms.feature)),
-        fsea = CSV.read(joinpath(datadir, "fsea_consolidated_Model2_$mod.csv"), DataFrame)
-    )
-end)
-
-#-
-sigs = unique(subset(vcat([res[k].fsea for k in 1:2]...), "qvalue"=> ByRow(<(0.2))).geneset)
-sigs_y = Dict(gs=> i for (i, gs) in enumerate(sigs))
-#-
-
-prettytitles = Dict(
-    :entropy => "Maternal Unpredictability",
-    :visual => "Infant VOB"
-)
-
-for (i, k) in enumerate(keys(res))
-
-    @show mdz = median(res[k].lms.z)
-    lms = res[k].lms
-    na = res[k].na
-    fsea = res[k].fsea
-    
-    ax = Axis(
-        DE_Subfig[1,i];
-        xlabel = "z statistic",
-        ylabel = "geneset",
-        title="$(prettytitles[k])")
-
-    xlims!(ax, (-3.5, 3.5))
-    ylims!(ax, (0.5, 4.5))
-
-    hidedecorations!(ax, label = false, ticklabels = false, ticks = false, minorticks = false)
-    i == 1 && hideydecorations!(ax, ticklabels = false, ticks = false, minorticks = false)
-    i != 1 && hideydecorations!(ax, ticks = false, minorticks = false)
-
-    # if i == 1
-        ax.yticks = (1:length(sigs), sigs)
-    # end
-
-    vlines!(ax, [mdz]; ymin = 0.0, ymax = 8.0, linestyle = :dash, color = :gray)
-
-    for sig in sigs
-        xs = na[sig]
-        i = findfirst(==(sig), fsea.geneset)
-        y = sigs_y[sig]
-        med = median(lms.z[xs])
-        color = fsea.qvalue[i] > 0.2 ? :gray :
-                    # med < 0. ? :dodgerblue : :darkorange3
-                    med < mdz ? :dodgerblue : :darkorange3
-        violin!(ax, fill(y, length(xs)), lms.z[xs] ; orientation=:horizontal, color=(color, 0.3))
-        scatter!(ax, lms.z[xs], y .+ rand(Normal(0., 0.1), length(xs)); color)
-        lines!(ax, [med, med], y .+ [- 0.4, 0.4]; color)
-    end
-end
-
-Legend(## Vertical version, to the side
-    DE_Subfig[1,3],
-    vcat(
-        [
-            MarkerElement(; color = c, marker = :circle) for c in (:dodgerblue, :darkorange3, :gray)
-        ],
-        [
-            LineElement(; color = :gray, linestyle = :dash)
-        ]
-    ),
-    [
-        "q < 0.2, set median < effect median", 
-        "q < 0.2, set median > effect median", 
-        "not significant", 
-        "effect median z"
-    ],
-    orientation = :vertical
-)
+datadir = joinpath(Base.pwd(), "manuscript", "gene_glm")
 
 ## Middle-bottom (Interaction effects)
 
 res = NamedTuple(map(("entropy", "visual", "product")) do mod
     lms = CSV.read(joinpath(datadir, "lms_Model3_$mod.csv"), DataFrame)
+    subset!(lms, :Prevalence => (x -> x .>= 0.05))
+    fsea_results = CSV.read(joinpath(datadir, "fsea_sensitivity_consolidated_Model3_$mod.csv"), DataFrame)
+    subset!(fsea_results, :prevalence_cutoff => (x -> x .== 0.05))
+    select!(fsea_results, Not([:prevalence_cutoff]))
     Symbol(mod) => (;
         lms = subset(lms, :z => x -> .!isnan.(x)),  # remove missing z (these are the intercepts)
         na = Leap.getneuroactive(map(f-> replace(f, "UniRef90_"=>""), lms.feature)),
-        fsea = CSV.read(joinpath(datadir, "fsea_consolidated_Model3_$mod.csv"), DataFrame)
+        fsea = fsea_results
     )
 end)
 
@@ -353,13 +288,13 @@ for (i, k) in enumerate(keys(res))
     fsea = res[k].fsea
     
     ax = Axis(
-        DE_Subfig[2,i];
+        DE_Subfig[1,i];
         xlabel = "z statistic",
         ylabel = "geneset",
         title="$(prettytitles[k])")
 
     xlims!(ax, (-3.5, 3.5))
-    ylims!(ax, (0.5, 6.5))
+    ylims!(ax, (0.5, 7.5))
 
     hidedecorations!(ax, label = false, ticklabels = false, ticks = false, minorticks = false)
     i == 1 && hideydecorations!(ax, ticklabels = false, ticks = false, minorticks = false)
@@ -385,8 +320,26 @@ for (i, k) in enumerate(keys(res))
     end
 end
 
-Label(DE_Subfig[1, 0, Left()], "Unique effects models", rotation = pi/2)
-Label(DE_Subfig[2, 0, Left()], "Interaction models", rotation = pi/2)
+Label(DE_Subfig[1, 0, Left()], "Interaction models", rotation = pi/2)
+
+Legend(## Horizontal version, bottom
+    DE_Subfig[2,:],
+    vcat(
+        [
+            MarkerElement(; color = c, marker = :circle) for c in (:dodgerblue, :darkorange3, :gray)
+        ],
+        [
+            LineElement(; color = :gray, linestyle = :dash)
+        ]
+    ),
+    [
+        "q < 0.2, set median < effect median", 
+        "q < 0.2, set median > effect median", 
+        "not significant", 
+        "effect median z"
+    ],
+    orientation = :horizontal
+)
 
 ## Organism barplot
 ab_cmap = :PuBu
@@ -396,10 +349,10 @@ plot_geneset_genusab_sub = deepcopy(plot_geneset_genusab_table)
 
 # Define key genera you want to show explicitly
 focus_genera = [
+    "g__Streptococcus",
     "g__Bifidobacterium",
     "g__Klebsiella",
     "g__Escherichia",
-    "g__Bacteroides"
 ]
 
 # Normalize the abundance *within each geneset* so that total abundance per geneset = 1
@@ -474,9 +427,9 @@ focus_species = [
     "s__Bifidobacterium_longum",
     "s__Bifidobacterium_breve",
     "s__Bifidobacterium_bifidum",
-    "s__Klebsiella_pneumoniae",
     "s__Escherichia_coli",
-    "s__Bacteroides_vulgatus",
+    "s__Klebsiella_pneumoniae",
+    "s__Streptococcus_salivarius"
 ]
 
 # Normalize the abundance *within each geneset* so that total abundance per geneset = 1
@@ -568,24 +521,25 @@ colsize!(DE_Subfig, 0, Relative(0.01))
 colsize!(DE_Subfig, 1, Relative(0.33))
 colsize!(DE_Subfig, 2, Relative(0.33))
 colsize!(DE_Subfig, 3, Relative(0.33))
-rowsize!(DE_Subfig, 1, Relative(0.4))
-rowsize!(DE_Subfig, 2, Relative(0.6))
+rowsize!(DE_Subfig, 1, Relative(0.8))
+rowsize!(DE_Subfig, 2, Relative(0.2))
 
 colsize!(FG_Subfig, 0, Relative(0.01))
 colsize!(FG_Subfig, 1, Relative(0.40))
 colsize!(FG_Subfig, 2, Relative(0.59))
 
-rowsize!(fig.layout, 1, Relative(0.33))
-rowsize!(fig.layout, 2, Relative(0.37))
-rowsize!(fig.layout, 3, Relative(0.30))
+rowsize!(fig.layout, 1, Relative(0.35))
+rowsize!(fig.layout, 2, Relative(0.33))
+rowsize!(fig.layout, 3, Relative(0.32))
 
-Label(AB_Subfig_plots[1, 1, TopLeft()], "a", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
-Label(AB_Subfig_plots[1, 2, TopLeft()], "b", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
-Label(C_Subfig[1, 1, TopLeft()], "c", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
-Label(DE_Subfig[1, 1, TopLeft()], "d", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
-Label(DE_Subfig[2, 1, TopLeft()], "e", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
-Label(F_Subfig[1, 1, TopLeft()], "f", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
-Label(G_Subfig[1, 1, TopLeft()], "g", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(AB_Subfig_plots[1, 1, TopLeft()], "A", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(AB_Subfig_plots[1, 2, TopLeft()], "B", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(C_Subfig[1, 1, TopLeft()], "C", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(DE_Subfig[1, 1, TopLeft()], "D", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(DE_Subfig[1, 2, TopLeft()], "E", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(DE_Subfig[1, 3, TopLeft()], "F", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(F_Subfig[1, 1, TopLeft()], "G", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(G_Subfig[1, 1, TopLeft()], "H", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
 
 fig
 

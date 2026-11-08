@@ -9,7 +9,7 @@ select!(khula_rf_data, mdata_cols, :)
 if isfile(joinpath(Base.pwd(), "manuscript", "models", "regression_VOB_NoEnt_FullCV_Results.jld"))
     JLD2.@load joinpath(Base.pwd(), "manuscript", "models", "regression_VOB_NoEnt_FullCV_Results.jld") regression_VOB_NoEnt_FullCV
 else
-    select!(khula_rf_data, :subject_id, :sample, :datasource, :MaternalEntropy, :InfantVisAtt, :child_sex, :)
+    select!(khula_rf_data, :subject_id, :sample, :datasource, :MaternalEntropy, :InfantVisAtt, :child_sex, Not([:pci_assess_age]))
     regression_VOB_NoEnt_FullCV = Leap.probe_regression_randomforest(
         "regression_VOB_NoEnt_FullCV",
         khula_rf_data,

@@ -191,7 +191,7 @@ adonis_y = plotdf.R2
 
 axB = Axis(
     BCD_Subfig[1, 1:2],
-    ylabel = "Explained variance (R²)",
+    ylabel = "R²",
     xlabel = "",
     xticks = (adonis_x, [label_map[a] for a in plotdf.analysis]),
     title = "Combined PERMANOVAs for feeding and VOB",
@@ -232,6 +232,7 @@ axC = Axis(
     BCD_Subfig[2, 1];
     xticklabelsize = 16,
     yticklabelsize = 16,
+    ylabel = "Shannon index",
     xticks = (1:3, ["Excl.\nBF", "Mixed", "Excl.\nFF"]),
     title = "Shannon index by\nfeeding practice"
 )
@@ -240,13 +241,15 @@ hidedecorations!(
     label = false, ticklabels = false, ticks = false,
     grid = true, minorgrid = false, minorticks = false
 )
-ylims!(axC, [0.0, 3.3])
+ylims!(axC, [0.0, 3.6])
 
 axD = Axis(
     BCD_Subfig[2, 2];
     xticklabelsize = 16,
     yticklabelsize = 16,
+    ylabel = rich("Infant VOB (× 10", superscript("-5"), ")"),
     xticks = (1:3, ["Excl.\nBF", "Mixed", "Excl.\nFF"]),
+    yticks = (0.0000:0.00005:0.00010, ["0.0", "5.0", "10.0"]),
     title = "Infant VOB by\nfeeding practice"
 )
 hidedecorations!(
@@ -254,7 +257,7 @@ hidedecorations!(
     label = false, ticklabels = false, ticks = false,
     grid = true, minorgrid = false, minorticks = false
 )
-ylims!(axD, [0.0, 1.5e-4])
+ylims!(axD, [0.0, 0.00015])
 
 bpB1 = boxplot!(
     axC,
@@ -375,12 +378,12 @@ cbD = Colorbar(
 
 ## Layout
 
-Label(A_Subfig[1, 1, TopLeft()], "a", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
-Label(BCD_Subfig[1, :, TopLeft()], "b", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
-Label(BCD_Subfig[2, 1, TopLeft()], "c", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
-Label(BCD_Subfig[2, 2, TopLeft()], "d", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
-Label(EF_Subfig[1, 1, TopLeft()], "e", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
-Label(EF_Subfig[1, 2, TopLeft()], "f", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(A_Subfig[1, 1, TopLeft()], "A", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(BCD_Subfig[1, :, TopLeft()], "B", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(BCD_Subfig[2, 1, TopLeft()], "C", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(BCD_Subfig[2, 2, TopLeft()], "D", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(EF_Subfig[1, 1, TopLeft()], "E", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(EF_Subfig[1, 2, TopLeft()], "F", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
 
 colgap!(fig.layout, 0)
 rowgap!(fig.layout, 0)
@@ -390,6 +393,7 @@ rowsize!(fig.layout, 2, Relative(0.50))
 
 rowsize!(BCD_Subfig, 1, Relative(0.40))
 rowsize!(BCD_Subfig, 2, Relative(0.60))
+colgap!(BCD_Subfig, 1)
 
 fig
 
@@ -401,6 +405,6 @@ save(joinpath(Base.pwd(),"manuscript", "figures", "Figure3.pdf"), fig)
 # Exporting Supplementary Figures
 #####
 
+include(joinpath(Base.pwd(), "manuscript", "FigureS2.jl"))
+include(joinpath(Base.pwd(), "manuscript", "FigureS3.jl"))
 include(joinpath(Base.pwd(), "manuscript", "FigureS4.jl"))
-include(joinpath(Base.pwd(), "manuscript", "FigureS5.jl"))
-include(joinpath(Base.pwd(), "manuscript", "FigureS6.jl"))

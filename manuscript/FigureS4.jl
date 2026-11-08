@@ -1,313 +1,120 @@
-## Supplementary Figure S1 - PC1vPC2, PC2vPC3, PC1vPC3 for taxa and genes, colro by both MatEnt and InfVisAtt
-fig = Figure(; size = (1200, 1500))
-feeding_cmap = Dict(
-    "ExclBreastFed" => :blue,
-    "Mixed" => :olive,
-    "ExclFormulaFed" => :red
-)
+## Color by Site
+fig = Figure(; size = (1200, 900))
 
-ax11 = Axis(
+# tempcol = sort(leftjoin(khula_pci_mbiome_data, select(godhelpme, [:sample, :l1_error]), on = :sample), :sample).l1_error
+# tempcol[ismissing.(tempcol)] .= 0.0
+# tempcol = collect(skipmissing(tempcol))
+
+ax1 = Axis(
     fig[1,1],
-    xlabel = "MDS1 ("*string(round(100*uni_MDS_variances[1]; digits = 2))*"%)",
-    ylabel = "MDS2 ("*string(round(100*uni_MDS_variances[2]; digits = 2))*"%)",
-    title = "Functional Profiles (Genes/UniRef90s)"
+    xlabel = "MDS1 ("*string(round(100*spe_MDS_variances[1]; digits = 2))*"%)",
+    ylabel = "MDS2 ("*string(round(100*spe_MDS_variances[2]; digits = 2))*"%)",
+    title = rich("Bifidobacterium longum", font = :italic)
 )
-hidedecorations!(ax11; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
-sc11 = scatter!(
-    ax11,
-    uni_MDS_columns[:,1],
-    uni_MDS_columns[:,2];
+hidedecorations!(ax1; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
+sc1 = scatter!(
+    ax1,
+    spe_MDS_columns[:,1],
+    spe_MDS_columns[:,2];
     markersize = 10,
-    color = unimdata.MaternalEntropy,
-    colormap = :plasma
+    color = khula_pci_mbiome_data.Bifidobacterium_longum,
+    # color = tempcol#,
+    colormap = :PuBu
 )
 
-ax12 = Axis(
+ax2 = Axis(
     fig[1,2],
-    xlabel = "MDS2 ("*string(round(100*uni_MDS_variances[2]; digits = 2))*"%)",
-    ylabel = "MDS3 ("*string(round(100*uni_MDS_variances[3]; digits = 2))*"%)",
-    title = "Functional Profiles (Genes/UniRef90s)"
+    xlabel = "MDS1 ("*string(round(100*spe_MDS_variances[1]; digits = 2))*"%)",
+    ylabel = "MDS2 ("*string(round(100*spe_MDS_variances[2]; digits = 2))*"%)",
+    title = rich("Bifidobacterium breve", font = :italic)
 )
-hidedecorations!(ax12; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
-sc12 = scatter!(
-    ax12,
-    uni_MDS_columns[:,2],
-    uni_MDS_columns[:,3];
+hidedecorations!(ax2; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
+sc2 = scatter!(
+    ax2,
+    spe_MDS_columns[:,1],
+    spe_MDS_columns[:,2];
     markersize = 10,
-    color = unimdata.MaternalEntropy,
-    colormap = :plasma
+    color = khula_pci_mbiome_data.Bifidobacterium_breve,
+    colormap = :PuBu
 )
 
-ax13 = Axis(
+ax3 = Axis(
     fig[1,3],
-    xlabel = "MDS1 ("*string(round(100*uni_MDS_variances[1]; digits = 2))*"%)",
-    ylabel = "MDS3 ("*string(round(100*uni_MDS_variances[3]; digits = 2))*"%)",
-    title = "Functional Profiles (Genes/UniRef90s)"
-)
-hidedecorations!(ax13; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
-sc13 = scatter!(
-    ax13,
-    uni_MDS_columns[:,1],
-    uni_MDS_columns[:,3];
-    markersize = 10,
-    color = unimdata.MaternalEntropy,
-    colormap = :plasma
-)
-
-ax21 = Axis(
-    fig[2,1],
     xlabel = "MDS1 ("*string(round(100*spe_MDS_variances[1]; digits = 2))*"%)",
     ylabel = "MDS2 ("*string(round(100*spe_MDS_variances[2]; digits = 2))*"%)",
-    title = "Taxonomic Profiles (species)",
+    title = rich("Bifidobacterium bifidum", font = :italic)
 )
-hidedecorations!(ax21; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
-sc21 = scatter!(
-    ax21,
+hidedecorations!(ax3; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
+sc3 = scatter!(
+    ax3,
     spe_MDS_columns[:,1],
     spe_MDS_columns[:,2];
     markersize = 10,
-    color = khula_pci_mbiome_data.MaternalEntropy,
-    colormap = :plasma
+    color = khula_pci_mbiome_data.Bifidobacterium_bifidum,
+    colormap = :PuBu
 )
 
-ax22 = Axis(
-    fig[2,2],
-    xlabel = "MDS2 ("*string(round(100*spe_MDS_variances[2]; digits = 2))*"%)",
-    ylabel = "MDS3 ("*string(round(100*spe_MDS_variances[3]; digits = 2))*"%)",
-    title = "Taxonomic Profiles (species)"
-)
-hidedecorations!(ax22; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
-sc22 = scatter!(
-    ax22,
-    spe_MDS_columns[:,2],
-    spe_MDS_columns[:,3];
-    markersize = 10,
-    color = khula_pci_mbiome_data.MaternalEntropy,
-    colormap = :plasma
-)
-
-ax23 = Axis(
-    fig[2,3],
-    xlabel = "MDS1 ("*string(round(100*spe_MDS_variances[1]; digits = 2))*"%)",
-    ylabel = "MDS3 ("*string(round(100*spe_MDS_variances[3]; digits = 2))*"%)",
-    title = "Taxonomic Profiles (species)"
-)
-hidedecorations!(ax23; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
-sc23 = scatter!(
-    ax23,
-    spe_MDS_columns[:,1],
-    spe_MDS_columns[:,3];
-    markersize = 10,
-    color = khula_pci_mbiome_data.MaternalEntropy,
-    colormap = :plasma
-)
-
-ax31 = Axis(
+ax4 = Axis(
     fig[3,1],
-    xlabel = "MDS1 ("*string(round(100*uni_MDS_variances[1]; digits = 2))*"%)",
-    ylabel = "MDS2 ("*string(round(100*uni_MDS_variances[2]; digits = 2))*"%)",
-    title = "Functional Profiles (Genes/UniRef90s)"
+    xlabel = "MDS1 ("*string(round(100*spe_MDS_variances[1]; digits = 2))*"%)",
+    ylabel = "MDS2 ("*string(round(100*spe_MDS_variances[2]; digits = 2))*"%)",
+    title = rich("Ruminococcus gnavus", font = :italic)
 )
-hidedecorations!(ax31; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
-sc31 = scatter!(
-    ax31,
-    uni_MDS_columns[:,1],
-    uni_MDS_columns[:,2];
+hidedecorations!(ax4; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
+sc4 = scatter!(
+    ax4,
+    spe_MDS_columns[:,1],
+    spe_MDS_columns[:,2];
     markersize = 10,
-    color = unimdata.InfantVisAtt,
-    colormap = :viridis
+    color = khula_pci_mbiome_data.Ruminococcus_gnavus,
+    colormap = :PuBu
 )
 
-ax32 = Axis(
+ax5 = Axis(
     fig[3,2],
-    xlabel = "MDS2 ("*string(round(100*uni_MDS_variances[2]; digits = 2))*"%)",
-    ylabel = "MDS3 ("*string(round(100*uni_MDS_variances[3]; digits = 2))*"%)",
-    title = "Functional Profiles (Genes/UniRef90s)"
+    xlabel = "MDS1 ("*string(round(100*spe_MDS_variances[1]; digits = 2))*"%)",
+    ylabel = "MDS2 ("*string(round(100*spe_MDS_variances[2]; digits = 2))*"%)",
+    title = rich("Erysipelatoclostridium ramosum", font = :italic)
 )
-hidedecorations!(ax32; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
-sc32 = scatter!(
-    ax32,
-    uni_MDS_columns[:,2],
-    uni_MDS_columns[:,3];
+hidedecorations!(ax5; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
+sc5 = scatter!(
+    ax5,
+    spe_MDS_columns[:,1],
+    spe_MDS_columns[:,2];
     markersize = 10,
-    color = unimdata.InfantVisAtt,
-    colormap = :viridis
+    color = khula_pci_mbiome_data.Erysipelatoclostridium_ramosum,
+    colormap = :PuBu
 )
 
-ax33 = Axis(
+ax6 = Axis(
     fig[3,3],
-    xlabel = "MDS1 ("*string(round(100*uni_MDS_variances[1]; digits = 2))*"%)",
-    ylabel = "MDS3 ("*string(round(100*uni_MDS_variances[3]; digits = 2))*"%)",
-    title = "Functional Profiles (Genes/UniRef90s)"
-)
-hidedecorations!(ax33; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
-sc33 = scatter!(
-    ax33,
-    uni_MDS_columns[:,1],
-    uni_MDS_columns[:,3];
-    markersize = 10,
-    color = unimdata.InfantVisAtt,
-    colormap = :viridis
-)
-
-ax41 = Axis(
-    fig[4,1],
     xlabel = "MDS1 ("*string(round(100*spe_MDS_variances[1]; digits = 2))*"%)",
     ylabel = "MDS2 ("*string(round(100*spe_MDS_variances[2]; digits = 2))*"%)",
-    title = "Taxonomic Profiles (species)",
+    title = rich("Escherichia coli", font = :italic)
 )
-hidedecorations!(ax41; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
-sc41 = scatter!(
-    ax41,
+hidedecorations!(ax6; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
+sc6 = scatter!(
+    ax6,
     spe_MDS_columns[:,1],
     spe_MDS_columns[:,2];
     markersize = 10,
-    color = khula_pci_mbiome_data.InfantVisAtt,
-    colormap = :viridis
+    color = khula_pci_mbiome_data.Escherichia_coli,
+    colormap = :PuBu
 )
 
-ax42 = Axis(
-    fig[4,2],
-    xlabel = "MDS2 ("*string(round(100*spe_MDS_variances[2]; digits = 2))*"%)",
-    ylabel = "MDS3 ("*string(round(100*spe_MDS_variances[3]; digits = 2))*"%)",
-    title = "Taxonomic Profiles (species)"
-)
-hidedecorations!(ax42; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
-sc42 = scatter!(
-    ax42,
-    spe_MDS_columns[:,2],
-    spe_MDS_columns[:,3];
-    markersize = 10,
-    color = khula_pci_mbiome_data.InfantVisAtt,
-    colormap = :viridis
-)
+Colorbar(fig[2,1], sc1, vertical = false, label = rich("Bifidobacterium longum", font = :italic))
+Colorbar(fig[2,2], sc2, vertical = false, label = rich("Bifidobacterium breve", font = :italic))
+Colorbar(fig[2,3], sc3, vertical = false, label = rich("Bifidobacterium bifidum", font = :italic))
+Colorbar(fig[4,1], sc4, vertical = false, label = rich("Ruminococcus gnavus", font = :italic))
+Colorbar(fig[4,2], sc5, vertical = false, label = rich("Erysipelatoclostridium ramosum", font = :italic))
+Colorbar(fig[4,3], sc6, vertical = false, label = rich("Escherichia coli", font = :italic))
 
-ax43 = Axis(
-    fig[4,3],
-    xlabel = "MDS1 ("*string(round(100*spe_MDS_variances[1]; digits = 2))*"%)",
-    ylabel = "MDS3 ("*string(round(100*spe_MDS_variances[3]; digits = 2))*"%)",
-    title = "Taxonomic Profiles (species)"
-)
-hidedecorations!(ax43; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
-sc43 = scatter!(
-    ax43,
-    spe_MDS_columns[:,1],
-    spe_MDS_columns[:,3];
-    markersize = 10,
-    color = khula_pci_mbiome_data.InfantVisAtt,
-    colormap = :viridis
-)
-
-ax51 = Axis(
-    fig[5,1],
-    xlabel = "MDS1 ("*string(round(100*uni_MDS_variances[1]; digits = 2))*"%)",
-    ylabel = "MDS2 ("*string(round(100*uni_MDS_variances[2]; digits = 2))*"%)",
-    title = "Functional Profiles (Genes/UniRef90s)"
-)
-hidedecorations!(ax51; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
-sc51 = scatter!(
-    ax51,
-    uni_MDS_columns[:,1],
-    uni_MDS_columns[:,2];
-    markersize = 10,
-    color = [ feeding_cmap[x] for x in unimdata.feeding_state ]
-)
-
-ax52 = Axis(
-    fig[5,2],
-    xlabel = "MDS2 ("*string(round(100*uni_MDS_variances[2]; digits = 2))*"%)",
-    ylabel = "MDS3 ("*string(round(100*uni_MDS_variances[3]; digits = 2))*"%)",
-    title = "Functional Profiles (Genes/UniRef90s)"
-)
-hidedecorations!(ax52; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
-sc52 = scatter!(
-    ax52,
-    uni_MDS_columns[:,2],
-    uni_MDS_columns[:,3];
-    markersize = 10,
-    color = [ feeding_cmap[x] for x in unimdata.feeding_state ]
-
-)
-
-ax53 = Axis(
-    fig[5,3],
-    xlabel = "MDS1 ("*string(round(100*uni_MDS_variances[1]; digits = 2))*"%)",
-    ylabel = "MDS3 ("*string(round(100*uni_MDS_variances[3]; digits = 2))*"%)",
-    title = "Functional Profiles (Genes/UniRef90s)"
-)
-hidedecorations!(ax53; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
-sc53 = scatter!(
-    ax53,
-    uni_MDS_columns[:,1],
-    uni_MDS_columns[:,3];
-    markersize = 10,
-    color = [ feeding_cmap[x] for x in unimdata.feeding_state ]
-
-)
-
-ax61 = Axis(
-    fig[6,1],
-    xlabel = "MDS1 ("*string(round(100*spe_MDS_variances[1]; digits = 2))*"%)",
-    ylabel = "MDS2 ("*string(round(100*spe_MDS_variances[2]; digits = 2))*"%)",
-    title = "Taxonomic Profiles (species)",
-)
-hidedecorations!(ax61; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
-sc61 = scatter!(
-    ax61,
-    spe_MDS_columns[:,1],
-    spe_MDS_columns[:,2];
-    markersize = 10,
-    color = [ feeding_cmap[x] for x in khula_pci_mbiome_data.feeding_state ]
-)
-
-ax62 = Axis(
-    fig[6,2],
-    xlabel = "MDS2 ("*string(round(100*spe_MDS_variances[2]; digits = 2))*"%)",
-    ylabel = "MDS3 ("*string(round(100*spe_MDS_variances[3]; digits = 2))*"%)",
-    title = "Taxonomic Profiles (species)"
-)
-hidedecorations!(ax62; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
-sc62 = scatter!(
-    ax62,
-    spe_MDS_columns[:,2],
-    spe_MDS_columns[:,3];
-    markersize = 10,
-    color = [ feeding_cmap[x] for x in khula_pci_mbiome_data.feeding_state ]
-)
-
-ax63 = Axis(
-    fig[6,3],
-    xlabel = "MDS1 ("*string(round(100*spe_MDS_variances[1]; digits = 2))*"%)",
-    ylabel = "MDS3 ("*string(round(100*spe_MDS_variances[3]; digits = 2))*"%)",
-    title = "Taxonomic Profiles (species)"
-)
-hidedecorations!(ax63; label = false, ticklabels = false, ticks = false, grid = true, minorgrid = false, minorticks = false)
-sc63 = scatter!(
-    ax63,
-    spe_MDS_columns[:,1],
-    spe_MDS_columns[:,3];
-    markersize = 10,
-    color = [ feeding_cmap[x] for x in khula_pci_mbiome_data.feeding_state ]
-)
-
-Colorbar(fig[1:2,4], sc11, vertical = true, label = "Maternal unpredictability")
-Colorbar(fig[3:4,4], sc31, vertical = true, label = "Visual Orienting Behavior")
-Legend(
-    fig[7,:],
-    [
-        MarkerElement(; marker=:circle, color=feeding_cmap["ExclBreastFed"], strokewidth=1),
-        MarkerElement(; marker=:circle, color=feeding_cmap["Mixed"], strokewidth=1),
-        MarkerElement(; marker=:circle, color=feeding_cmap["ExclFormulaFed"], strokewidth=1)
-    ],
-    [
-        "ExclBreastFed",
-        "Mixed",
-        "ExclFormulaFed"
-    ];
-    tellheight = true,
-    tellwidth = false,
-    orientation = :horizontal
-)
+Label(fig[1, 1, TopLeft()], "a", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(fig[1, 2, TopLeft()], "b", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(fig[1, 3, TopLeft()], "c", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(fig[3, 1, TopLeft()], "d", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(fig[3, 2, TopLeft()], "e", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
+Label(fig[3, 3, TopLeft()], "f", fontsize = 22, font = :bold, halign = :right, alignmode = Outside())
 
 fig
 

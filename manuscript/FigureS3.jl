@@ -127,12 +127,14 @@ clu_means = Float64[]
 clu_stdns = Float64[]
 
 for i in 1:elbow_point
-    cluster_data = unimdata.InfantVisAtt[final_clu.assignments .== i, :]
-    mean_cluster = mean(cluster_data, dims=1)
-    std_dev_cluster = std(cluster_data, dims=1)
+    in_cluster_data = unimdata.InfantVisAtt[final_clu.assignments .== i, :]
+    outof_cluster_data = unimdata.InfantVisAtt[final_clu.assignments .!= i, :]
+    htt = HypothesisTests.EqualVarianceTTest(vec(in_cluster_data), vec(outof_cluster_data))
+    mean_cluster = mean(in_cluster_data, dims=1)
+    std_dev_cluster = std(in_cluster_data, dims=1)
     push!(clu_means, mean_cluster[1,1])
     push!(clu_stdns, std_dev_cluster[1,1])
-    println("Cluster $i Mean: $mean_cluster, Standard Deviation: $std_dev_cluster")
+    println("Cluster $i Mean: $(mean_cluster[1]), Standard Deviation: $(std_dev_cluster[1]), p = $(HypothesisTests.pvalue(htt))" )
 end
 
 axC = Axis(
@@ -181,6 +183,6 @@ colsize!(fig.layout, 3, Relative(0.17))
 
 fig
 
-save(joinpath(Base.pwd(),"manuscript", "figures", "FigureS5.png"), fig)
-save(joinpath(Base.pwd(),"manuscript", "figures", "FigureS5.eps"), fig)
-save(joinpath(Base.pwd(),"manuscript", "figures", "FigureS5.pdf"), fig)
+save(joinpath(Base.pwd(),"manuscript", "figures", "FigureS3.png"), fig)
+save(joinpath(Base.pwd(),"manuscript", "figures", "FigureS3.eps"), fig)
+save(joinpath(Base.pwd(),"manuscript", "figures", "FigureS3.pdf"), fig)

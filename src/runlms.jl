@@ -11,7 +11,7 @@ function runlms(
     export_cooks::Bool = true
     )
 
-    isdir(outdir) && throw(error("Output directory already exists!"))
+    isdir(outdir) && @warn("Output directory already exists!")
     mkpath(outdir)
 
     ## Accessory function for cooks D
